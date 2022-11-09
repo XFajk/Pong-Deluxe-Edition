@@ -1,11 +1,12 @@
+import math
+import random
+import time
+
 import pygame
 from pygame.locals import *
 
-import math
-import time
-import random
-
 import effects
+
 
 def surf_circle(r:float,color_of_circle:tuple,colorkey:tuple) -> pygame.Surface:
     
@@ -82,11 +83,13 @@ class Ball:
     def Update(self,dt):
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.w, self.h)
         if self.w < self.size:
-            self.w += 0.5
+            self.w += 0.5*dt
+        if self.w > self.size:
+            self.w -= 0.5*dt
 
         self.h = self.w
 
-        if self.started and self.w == self.size:
+        if self.started:
             if self.pos.y <= 0 or self.pos.y+self.h >= self.DS[1]:
                 self.pos.y = 1 if self.pos.y <= 0 else self.DS[1] - self.h
                 self.vel.y = -self.vel.y
@@ -201,6 +204,7 @@ class Player:
             self.score += 1
             ball.started = False
             ball.w = 1
+            ball.size = 16
             ball.screen_shake_time = 30
             for i in range(60):
                 ball.particles.append([pygame.Vector2(ball.pos),pygame.Vector2(random.randint(5,10),random.randint(-10,10))/3,random.randint(-25,34)])
@@ -209,6 +213,7 @@ class Player:
             self.score += 1
             ball.started = False
             ball.w = 1
+            ball.size = 16
             ball.screen_shake_time = 30
             for i in range(60):
                 ball.particles.append([pygame.Vector2(ball.pos),pygame.Vector2(random.randint(-10,-5),random.randint(-10,10))/3,random.randint(-25,34)])
@@ -220,9 +225,9 @@ class RandomizeParticle:
         self.DS = DS
 
         # movement logic variables
-        self.w, self.h = 6,6
+        self.w, self.h = 12,12
         self.pos = pygame.Vector2(random.randint(100,DS[0]-100),random.choice([-10,DS[1]+10]))
-        self.vel = pygame.Vector2(0,random.randint(10,30)/10 if self.pos.y < 0 else random.randint(-30,-10)/10)
+        self.vel = pygame.Vector2(0,random.randint(10,50)/10 if self.pos.y < 0 else random.randint(-50,-10)/10)
         self.end_pos = DS[1]+18 if self.pos.y < 0 else -18
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.w, self.h)
 
@@ -230,25 +235,51 @@ class RandomizeParticle:
         self.effect_ID = random.randint(0,1)
         self.alive = True
 
+        # effect variables
+        self.ball_max_radius = 64
+        self.ball_min_radius = 4
+        self.ball_size_multiplier = 2
+
         # effects and graphics
         self.color = (random.randint(100,255),random.randint(100,255),random.randint(100,255))
         self.change_color_timer = time.perf_counter()
         self.explosion_dictionary = {"r":16,"color":(255,255,255),"r2":0}
         self.explosion_surf = surf_circle(self.explosion_dictionary.get("r"),self.explosion_dictionary.get("color"),(0,0,0))
 
+    def pick_effect(self,b,p1,p2):
+        if self.effect_ID == 0 and b.size < self.ball_max_radius: # making ball bigger
+            b.size *= self.ball_size_multiplier
+        else:
+            ...
+        if self.effect_ID == 1 and b.size > self.ball_min_radius: # making ball smaller
+            b.size /= self.ball_size_multiplier
+        else:
+            ...
 
-    def Draw(self,surface):
-        pygame.draw.circle(surface,self.color,(self.pos.x,self.pos.y),self.self.w)
+
+    def Render(self,surface):
+        pygame.draw.rect(surface, (255,0,0), self.rect)
+        pygame.draw.circle(surface,self.color,(self.pos.x+self.w/2,self.pos.y+self.h/2),self.w/2)
         if (time.perf_counter()-self.change_color_timer) > 1:
             self.color = (random.randint(100,255),random.randint(100,255),random.randint(100,255))
+            self.change_color_timer = time.perf_counter()
 
-    def Update(self,dt):
-        self.h = self.w
+    def Update(self,dt,ball,p1,p2):
+        self.rect = pygame.Rect(self.pos.x-2, self.pos.y-2, self.w+4, self.h+4)
+        self.h = self.w # the object is a circle so the height should all ways be equal to width
+
+        # movement logic
         self.pos += self.vel * dt
 
+        # kill particle when off screen
         if self.end_pos == -18 and self.pos.y < self.end_pos:
             self.alive = False
         if self.end_pos == self.DS[1]+18 and self.pos.y > self.end_pos:
+            self.alive = False
+        
+        # collision with the ball
+        if self.rect.colliderect(ball.rect):
+            self.pick_effect(ball,p1,p2)
             self.alive = False
 
 
