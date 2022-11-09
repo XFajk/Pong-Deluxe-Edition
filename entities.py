@@ -222,21 +222,34 @@ class RandomizeParticle:
         # movement logic variables
         self.w, self.h = 6,6
         self.pos = pygame.Vector2(random.randint(100,DS[0]-100),random.choice([-10,DS[1]+10]))
-        self.vel = pygame.Vector2(0,random.randint(1,3) if self.pos.y < 0 else random.randint(-3,-1))
+        self.vel = pygame.Vector2(0,random.randint(10,30)/10 if self.pos.y < 0 else random.randint(-30,-10)/10)
+        self.end_pos = DS[1]+18 if self.pos.y < 0 else -18
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.w, self.h)
 
         # logic variables
         self.effect_ID = random.randint(0,1)
+        self.alive = True
 
         # effects and graphics
+        self.color = (random.randint(100,255),random.randint(100,255),random.randint(100,255))
+        self.change_color_timer = time.perf_counter()
         self.explosion_dictionary = {"r":16,"color":(255,255,255),"r2":0}
         self.explosion_surf = surf_circle(self.explosion_dictionary.get("r"),self.explosion_dictionary.get("color"),(0,0,0))
 
 
-    def Draw(self):
-        ...
-    
-    def Update(self):
-        ...
+    def Draw(self,surface):
+        pygame.draw.circle(surface,self.color,(self.pos.x,self.pos.y),self.self.w)
+        if (time.perf_counter()-self.change_color_timer) > 1:
+            self.color = (random.randint(100,255),random.randint(100,255),random.randint(100,255))
+
+    def Update(self,dt):
+        self.h = self.w
+        self.pos += self.vel * dt
+
+        if self.end_pos == -18 and self.pos.y < self.end_pos:
+            self.alive = False
+        if self.end_pos == self.DS[1]+18 and self.pos.y > self.end_pos:
+            self.alive = False
+
 
 
