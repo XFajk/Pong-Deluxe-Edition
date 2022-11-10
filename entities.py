@@ -112,7 +112,8 @@ class Player:
         self.ID:int = id
 
         # movment variables
-        self.w, self.h = 16,90
+        self.w, self.h = 16,0
+        self.size = 90
         self.pos = pygame.Vector2(pos)
         self.vel = pygame.Vector2(0,0)
         self.max_vel = pygame.Vector2(0,5)
@@ -135,6 +136,12 @@ class Player:
     def Update(self,dt,ball):
         keys = pygame.key.get_pressed()
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.w, self.h)
+        if self.h < self.size:
+            self.pos.y -= 0.5*dt
+            self.h += 1*dt
+        if self.h > self.size:
+            self.pos.y += 0.5*dt
+            self.h -= 1*dt
 
         # the movment
         if self.ID == 1:
@@ -175,9 +182,13 @@ class Player:
 
         if self.pos.y < 0:
             self.vel = -self.vel
+            self.pos.y = 0
+            
 
         if self.pos.y+self.h > self.DS[1]:
             self.vel = -self.vel
+            self.pos.y = self.DS[1]-self.h
+        
 
         # collision detection
         if self.ID == 1 and ball.rect.colliderect(self.rect):
@@ -205,6 +216,7 @@ class Player:
             ball.started = False
             ball.w = 1
             ball.size = 16
+            self.size = 90
             ball.screen_shake_time = 30
             for i in range(60):
                 ball.particles.append([pygame.Vector2(ball.pos),pygame.Vector2(random.randint(5,10),random.randint(-10,10))/3,random.randint(-25,34)])
@@ -214,9 +226,14 @@ class Player:
             ball.started = False
             ball.w = 1
             ball.size = 16
+            self.size = 90
             ball.screen_shake_time = 30
             for i in range(60):
                 ball.particles.append([pygame.Vector2(ball.pos),pygame.Vector2(random.randint(-10,-5),random.randint(-10,10))/3,random.randint(-25,34)])
+
+        # making player height reset to original
+        if not ball.started:
+            self.size = 90
 
                 
 class RandomizeParticle:
@@ -232,10 +249,15 @@ class RandomizeParticle:
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.w, self.h)
 
         # logic variables
-        self.effect_ID = random.randint(0,1)
+        self.effect_ID = random.randint(0,3)
         self.alive = True
 
-        # effect variables
+        # player effect variables
+        self.player_max_height = 180
+        self.player_min_height = 30
+        self.player_size_increment = 30
+
+        # ball effect variables
         self.ball_max_radius = 64
         self.ball_min_radius = 4
         self.ball_size_multiplier = 2
@@ -251,6 +273,12 @@ class RandomizeParticle:
             b.size *= self.ball_size_multiplier
         elif self.effect_ID == 1 and b.size > self.ball_min_radius: # making ball smaller
             b.size /= self.ball_size_multiplier
+        elif self.effect_ID == 2 and p1.size < self.player_max_height and p2.size < self.player_max_height: # making player bigger
+            p1.size += self.player_size_increment
+            p2.size += self.player_size_increment
+        elif self.effect_ID == 3 and p1.size > self.player_min_height and p2.size > self.player_min_height:
+            p1.size -= self.player_size_increment
+            p2.size -= self.player_size_increment
         else:
             b.vel.x = -b.vel.x
             
