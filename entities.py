@@ -249,16 +249,13 @@ class RandomizeParticle:
     def pick_effect(self,b,p1,p2):
         if self.effect_ID == 0 and b.size < self.ball_max_radius: # making ball bigger
             b.size *= self.ball_size_multiplier
-        else:
-            ...
-        if self.effect_ID == 1 and b.size > self.ball_min_radius: # making ball smaller
+        elif self.effect_ID == 1 and b.size > self.ball_min_radius: # making ball smaller
             b.size /= self.ball_size_multiplier
         else:
-            ...
-
-
+            b.vel.x = -b.vel.x
+            
     def Render(self,surface):
-        pygame.draw.rect(surface, (255,0,0), self.rect)
+        #pygame.draw.rect(surface, (255,0,0), self.rect)
         pygame.draw.circle(surface,self.color,(self.pos.x+self.w/2,self.pos.y+self.h/2),self.w/2)
         if (time.perf_counter()-self.change_color_timer) > 1:
             self.color = (random.randint(100,255),random.randint(100,255),random.randint(100,255))
