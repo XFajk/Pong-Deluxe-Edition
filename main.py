@@ -47,14 +47,13 @@ def main() -> None:
 
     # entities and objects
     ball = entities.Ball(DS,(0,220,0))
-    player1 = entities.Player((10,DS[1]/2-90/2),DS,id=1)
-    player2 = entities.Player((DS[0]-16-10,DS[1]/2-90/2),DS,id=2)
+    player1 = entities.Player((10,DS[1]/2),DS,id=1)
+    player2 = entities.Player((DS[0]-16-10,DS[1]/2),DS,id=2)
     RandomizeParticles = []
     amount_of_RandomizeParticles = 8
 
     # text
-    player1_score_text = Game_font.render(f"{player1.score}",True,(255,255,255))
-    player2_score_text = Game_font.render(f"{player2.score}",True,(255,255,255))
+
 
     # timers
 
@@ -63,7 +62,7 @@ def main() -> None:
     display_offset = [0,0]
     display_rotation_offset = 0
 
-    RandomizeParticle_timer = time.perf_counter()
+    RandomizeParticle_timer = 0.0
 
     running = True
     while running:
@@ -82,7 +81,8 @@ def main() -> None:
         player1.Update(dt,ball)
         player2.Update(dt,ball)
 
-        if (time.perf_counter() - RandomizeParticle_timer) > 10:
+
+        if (time.perf_counter() - RandomizeParticle_timer) > 10 and ball.started:
             for i in range(amount_of_RandomizeParticles):
                 RandomizeParticles.append(entities.RandomizeParticle(DS))
                 RandomizeParticle_timer = time.perf_counter()
@@ -97,7 +97,7 @@ def main() -> None:
         # RandomizeParticles
         for i,p in sorted(enumerate(RandomizeParticles), reverse=True):
             p.Update(dt,ball,player1,player2)
-            p.Render(display)
+            p.Render(display,dt)
             if not p.alive:
                 RandomizeParticles.pop(i)
 
@@ -107,9 +107,8 @@ def main() -> None:
 
 
         # Rendering
-        player1_score_text = Game_font.render(f"{player1.score}    {player2.score}",False,(255,255,255))
-        player2_score_text = Game_font.render(f"{player2.score}",False,(255,255,255))
-        UI_display.blit(player1_score_text,(DS[0]/2-player1_score_text.get_width()/2,10))
+        player_score_text = Game_font.render(f"{player1.score}    {player2.score}",False,(255,255,255))
+        UI_display.blit(player_score_text,(DS[0]/2-player_score_text.get_width()/2,10))
 
         if debug:
             draw_debug(UI_display,debug_font,
@@ -124,6 +123,7 @@ def main() -> None:
         for event in pygame.event.get():
             if event.type == KEYDOWN:
                 if event.key == K_SPACE and not ball.started:
+                    RandomizeParticle_timer = time.perf_counter()
                     ball.dir = pygame.Vector2(random.choice([-1,1]),random.choice([-1,1]))
                     ball.vel.x, ball.vel.y = ball.vel.x*ball.dir.x, ball.vel.y*ball.dir.y
                     ball.started = True

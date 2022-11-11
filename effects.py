@@ -6,7 +6,7 @@ import time
 import random
 
 class Spark:
-    def __init__(self, loc, angle, speed, color=(255,255,255), scale=1):
+    def __init__(self, loc:list, angle:float, speed, color:tuple=(255,255,255), scale:float=1):
         self.loc = loc
         self.angle = angle
         self.speed = speed

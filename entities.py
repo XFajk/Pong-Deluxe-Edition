@@ -49,7 +49,7 @@ class Ball:
         self.follow_particles = []
         self.screen_shake_time:int = 0
 
-    def Render(self,surface,dt):
+    def Render(self,surface:pygame.Surface,dt:float):
         #pygame.draw.rect(surface,(255,255,255),self.rect)
 
         for i, s in sorted(enumerate(self.sparks), reverse=True):
@@ -80,7 +80,7 @@ class Ball:
         #pygame.draw.rect(surface,(255,0,0),(self.rect))
         pygame.draw.circle(surface,self.color,(self.pos.x+self.w/2,self.pos.y+self.h/2),self.w/2)
 
-    def Update(self,dt):
+    def Update(self,dt:float):
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.w, self.h)
         if self.w < self.size:
             self.w += 0.5*dt
@@ -127,13 +127,13 @@ class Player:
         self.color = color
         self.sprite = sprite
     
-    def Render(self,surface,dt):
+    def Render(self,surface:pygame.Surface,dt:float):
         if self.sprite != None:
             surface.blit(self.sprite,self.pos)
         else:
             pygame.draw.rect(surface,self.color,self.rect)
 
-    def Update(self,dt,ball):
+    def Update(self,dt:float,ball:Ball):
         keys = pygame.key.get_pressed()
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.w, self.h)
         if self.h < self.size:
@@ -148,36 +148,49 @@ class Player:
             # input and moving
             if keys[pygame.K_w]:
                 if self.vel.y > -self.max_vel.y:
-                    self.vel -= self.vel_increment
+                    self.vel -= self.vel_increment*dt
+                else:
+                    self.vel.y = -self.max_vel.y
 
             if keys[pygame.K_s]:
                 if self.vel.y < self.max_vel.y:
-                    self.vel += self.vel_increment
-            
+                    self.vel += self.vel_increment*dt
+                else:
+                    self.vel.y = self.max_vel.y
+
             # slowing down
             if not keys[pygame.K_s] and not keys[pygame.K_w]:
+                if int(self.vel.y) == 0:
+                    self.vel.y = 0
                 if self.vel.y > 0:
-                    self.vel -= self.vel_increment
+                    self.vel -= self.vel_increment*dt
                 if self.vel.y < 0:
-                    self.vel += self.vel_increment
+                    self.vel += self.vel_increment*dt
 
         if self.ID == 2:
             # input and moving
             if keys[pygame.K_UP]:
                 if self.vel.y > -self.max_vel.y:
-                    self.vel -= self.vel_increment
+                    self.vel -= self.vel_increment*dt
+                else:
+                    self.vel.y = -self.max_vel.y
 
             if keys[pygame.K_DOWN]:
                 if self.vel.y < self.max_vel.y:
-                    self.vel += self.vel_increment
+                    self.vel += self.vel_increment*dt
+                else:
+                    self.vel.y = self.max_vel.y
 
             # slowing down
             if not keys[pygame.K_DOWN] and not keys[pygame.K_UP]:
+                if int(self.vel.y) == 0:
+                    self.vel.y = 0
                 if self.vel.y > 0:
-                    self.vel -= self.vel_increment
+                    self.vel -= self.vel_increment*dt
                 if self.vel.y < 0:
-                    self.vel += self.vel_increment
+                    self.vel += self.vel_increment*dt
 
+    
         self.pos += self.vel * dt
 
         if self.pos.y < 0:
@@ -263,33 +276,52 @@ class RandomizeParticle:
         self.ball_size_multiplier = 2
 
         # effects and graphics
+        self.sparks = []
         self.color = (random.randint(100,255),random.randint(100,255),random.randint(100,255))
         self.change_color_timer = time.perf_counter()
+        self.play_explosion = False
         self.explosion_dictionary = {"r":16,"color":(255,255,255),"r2":0}
         self.explosion_surf = surf_circle(self.explosion_dictionary.get("r"),self.explosion_dictionary.get("color"),(0,0,0))
 
-    def pick_effect(self,b,p1,p2):
-        if self.effect_ID == 0 and b.size < self.ball_max_radius: # making ball bigger
-            b.size *= self.ball_size_multiplier
-        elif self.effect_ID == 1 and b.size > self.ball_min_radius: # making ball smaller
-            b.size /= self.ball_size_multiplier
-        elif self.effect_ID == 2 and p1.size < self.player_max_height and p2.size < self.player_max_height: # making player bigger
-            p1.size += self.player_size_increment
-            p2.size += self.player_size_increment
-        elif self.effect_ID == 3 and p1.size > self.player_min_height and p2.size > self.player_min_height:
-            p1.size -= self.player_size_increment
-            p2.size -= self.player_size_increment
-        else:
-            b.vel.x = -b.vel.x
+    def pick_effect(self,b:Ball,p1:Player,p2:Player):
+        if not self.play_explosion:
+            if self.effect_ID == 0 and b.size < self.ball_max_radius: # making ball bigger
+                b.size *= self.ball_size_multiplier
+            elif self.effect_ID == 1 and b.size > self.ball_min_radius: # making ball smaller
+                b.size /= self.ball_size_multiplier
+            elif self.effect_ID == 2 and p1.size < self.player_max_height and p2.size < self.player_max_height: # making player bigger
+                p1.size += self.player_size_increment
+                p2.size += self.player_size_increment
+            elif self.effect_ID == 3 and p1.size > self.player_min_height and p2.size > self.player_min_height:
+                p1.size -= self.player_size_increment
+                p2.size -= self.player_size_increment
+            else:
+                b.vel.x = -b.vel.x
             
-    def Render(self,surface):
+    def Render(self,surface:pygame.Surface,dt:float) -> None:
         #pygame.draw.rect(surface, (255,0,0), self.rect)
-        pygame.draw.circle(surface,self.color,(self.pos.x+self.w/2,self.pos.y+self.h/2),self.w/2)
+
+        # drawing the player 
+        if not self.play_explosion:
+            pygame.draw.circle(surface,self.color,(self.pos.x+self.w/2,self.pos.y+self.h/2),self.w/2)
+        
+        # is here to change the color every second
         if (time.perf_counter()-self.change_color_timer) > 1:
             self.color = (random.randint(100,255),random.randint(100,255),random.randint(100,255))
             self.change_color_timer = time.perf_counter()
+        
+        # drawing the explosion
+        if self.play_explosion:
+            self.explosion_surf = surf_circle(self.explosion_dictionary.get("r"),self.explosion_dictionary.get("color"),(0,0,0))
+            pygame.draw.circle(self.explosion_surf,(0,0,0),(self.explosion_dictionary['r'],self.explosion_dictionary['r']),self.explosion_dictionary['r2'])
+            self.explosion_dictionary['r'] += 1*dt
+            self.explosion_dictionary['r2'] += 2*dt
+            surface.blit(self.explosion_surf,((self.pos.x+self.w/2)-self.explosion_dictionary['r'],(self.pos.y+self.h/2)-self.explosion_dictionary['r']))
+            if self.explosion_dictionary['r2'] >= self.explosion_dictionary['r']:
+                self.alive = False
 
-    def Update(self,dt,ball,p1,p2):
+
+    def Update(self,dt:float,ball:Ball,p1:Player,p2:Player) -> None:
         self.rect = pygame.Rect(self.pos.x-2, self.pos.y-2, self.w+4, self.h+4)
         self.h = self.w # the object is a circle so the height should all ways be equal to width
 
@@ -305,7 +337,6 @@ class RandomizeParticle:
         # collision with the ball
         if self.rect.colliderect(ball.rect):
             self.pick_effect(ball,p1,p2)
-            self.alive = False
-
+            self.play_explosion = True
 
 
