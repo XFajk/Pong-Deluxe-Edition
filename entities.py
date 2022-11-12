@@ -38,7 +38,7 @@ class Ball:
         # logic
         self.started = False
         self.add_to_velocity = True
-        self.velocity_increment = 1/12
+        self.velocity_increment = 0.25
         self.max_velocity = 13
 
         # effects and graphics
@@ -126,6 +126,9 @@ class Player:
         # effects and graphics
         self.color = color
         self.sprite = sprite
+
+        # sounds
+        self.hit = pygame.mixer.Sound('assets/sound-effects/collision_hit.mp3')
     
     def Render(self,surface:pygame.Surface,dt:float):
         if self.sprite != None:
@@ -205,20 +208,27 @@ class Player:
 
         # collision detection
         if self.ID == 1 and ball.rect.colliderect(self.rect):
-            ball.vel.x = abs(ball.vel.x)
+            self.hit.play()
+            ball.vel.x *= -1
+            ball.pos.x = self.pos.x+self.w
             if ball.add_to_velocity and ball.vel.x < ball.max_velocity:
-                ball.vel.x += ball.velocity_increment
+                if self.vel.y == self.max_vel.y or self.vel.y == -self.max_vel.y: ball.vel.x += ball.velocity_increment*3
+                else: ball.vel.x += ball.velocity_increment 
+            
             ball.screen_shake_time = 15
-            for i in range(20):
+            for i in range(60):
                 rand_color = random.randint(150,255)
                 rand_ang = random.randint(90,275) if ball.vel.x/abs(ball.vel.x) == -1 else random.randint(-90,90)
                 ball.sparks.append(effects.Spark([ball.pos.x-((ball.vel.x/abs(ball.vel.x))),ball.pos.y],math.radians(rand_ang),random.randint(3,9),(rand_color,rand_color,rand_color),2))
         if self.ID == 2 and ball.rect.colliderect(self.rect):
-            ball.vel.x = -abs(ball.vel.x)
+            self.hit.play()
+            ball.vel.x *= -1
+            ball.pos.x = self.pos.x-ball.w
             if ball.add_to_velocity and ball.vel.x > -ball.max_velocity:
-                ball.vel.x -= ball.velocity_increment
+                if self.vel.y == self.max_vel.y or self.vel.y == -self.max_vel.y: ball.vel.x -= ball.velocity_increment*3
+                else: ball.vel.x -= ball.velocity_increment 
             ball.screen_shake_time = 15
-            for i in range(20):
+            for i in range(60):
                 rand_color = random.randint(150,255)
                 rand_ang = random.randint(90,275) if ball.vel.x/abs(ball.vel.x) == -1 else random.randint(-90,90)
                 ball.sparks.append(effects.Spark([ball.pos.x-((ball.vel.x/abs(ball.vel.x))),ball.pos.y],math.radians(rand_ang),random.randint(3,9),(rand_color,rand_color,rand_color),2))
