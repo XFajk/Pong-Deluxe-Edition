@@ -20,6 +20,12 @@ def surf_circle(r:float,color_of_circle:tuple,colorkey:tuple) -> pygame.Surface:
 
     return s
 
+def surf_rect(size:tuple,color=(255,255,255)) -> pygame.Surface:
+    s = pygame.Surface((size[0], size[1]))
+    pygame.draw.rect(s,color,(0,0,size[0],size[1]))
+    return s
+
+
 
 class Ball:
     def __init__(self,DS,color,sprite=None):
@@ -41,7 +47,12 @@ class Ball:
         self.velocity_increment = 0.25
         self.max_velocity = 13
 
+        # sound effects
+        self.collision_hit = pygame.mixer.Sound('assets/sound-effects/collision_hit2.mp3')
+
         # effects and graphics
+        self.light_effect = True
+        self.light_surface = surf_circle(self.w*2,(color[0]/3,color[1]/3,color[2]/3),(0,0,0))
         self.sprite = sprite
         self.color = color
         self.sparks = []
@@ -51,6 +62,7 @@ class Ball:
 
     def Render(self,surface:pygame.Surface,dt:float):
         #pygame.draw.rect(surface,(255,255,255),self.rect)
+
 
         for i, s in sorted(enumerate(self.sparks), reverse=True):
             s.move(dt)
@@ -70,15 +82,22 @@ class Ball:
         for i, p in sorted(enumerate(self.particles), reverse=True):
             p[0] += p[1]*dt
             p[2] -= 0.25*dt
+            r = p[2]+8
+            s = surf_circle(r,(self.color[0]/3,self.color[1]/3,self.color[2]/3),(0,0,0))
 
             pygame.draw.circle(surface,self.color,(p[0].x,p[0].y),p[2])
+            if p[3]:
+                surface.blit(s,(p[0].x-(s.get_width()/2),p[0].y-(s.get_height()/2)),special_flags=BLEND_RGB_ADD)
 
             if p[2] <= 0:
                 self.particles.pop(i)
 
     
-        #pygame.draw.rect(surface,(255,0,0),(self.rect))
         pygame.draw.circle(surface,self.color,(self.pos.x+self.w/2,self.pos.y+self.h/2),self.w/2)
+
+        if self.light_effect:
+            self.light_surface = surf_circle(self.w+4,(self.color[0]/3,self.color[1]/3,self.color[2]/3),(0,0,0))
+            surface.blit(self.light_surface,(int((self.pos.x+self.w/2)-self.light_surface.get_width()/2),int((self.pos.y+self.h/2)-self.light_surface.get_height()/2)),special_flags=BLEND_RGB_ADD)
 
     def Update(self,dt:float):
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.w, self.h)
@@ -93,6 +112,7 @@ class Ball:
             if self.pos.y <= 0 or self.pos.y+self.h >= self.DS[1]:
                 self.pos.y = 1 if self.pos.y <= 0 else self.DS[1] - self.h
                 self.vel.y = -self.vel.y
+                self.collision_hit.play()
                 for i in range(40):
                     rand_color = random.randint(150,255)
                     rand_ang = random.randint(180,360) if self.vel.y/abs(self.vel.y) == -1 else random.randint(0,180)
@@ -126,15 +146,22 @@ class Player:
         # effects and graphics
         self.color = color
         self.sprite = sprite
+        self.light_effect = True
+        self.light_surface = surf_rect((self.w+10,self.h+10),(self.color[0]/3,self.color[1]/3,self.color[2]/3))
 
         # sounds
         self.hit = pygame.mixer.Sound('assets/sound-effects/collision_hit.mp3')
+        self.explosion = pygame.mixer.Sound('assets/sound-effects/Game_over_explosion.mp3')
+        self.explosion.set_volume(0.3)
     
     def Render(self,surface:pygame.Surface,dt:float):
         if self.sprite != None:
             surface.blit(self.sprite,self.pos)
         else:
             pygame.draw.rect(surface,self.color,self.rect)
+            if self.light_effect:
+                self.light_surface = surf_rect((self.w+10,self.h+10),(self.color[0]/3,self.color[1]/3,self.color[2]/3))
+                surface.blit(self.light_surface, (self.pos.x-5,self.pos.y-5),special_flags=BLEND_RGB_ADD) 
 
     def Update(self,dt:float,ball:Ball):
         keys = pygame.key.get_pressed()
@@ -235,24 +262,26 @@ class Player:
 
         # point assignments
         if ball.pos.x <= -16 and self.ID == 2:
+            self.explosion.play()
             self.score += 1
             ball.started = False
             ball.w = 1
             ball.size = 16
             self.size = 90
             ball.screen_shake_time = 30
-            for i in range(60):
-                ball.particles.append([pygame.Vector2(ball.pos),pygame.Vector2(random.randint(5,10),random.randint(-10,10))/3,random.randint(-25,34)])
+            for i in range(30):
+                ball.particles.append([pygame.Vector2(ball.pos),pygame.Vector2(random.randint(5,10),random.randint(-10,10))/3,random.randint(25,34),random.choice([True,False])])
         
         if ball.pos.x >= ball.DS[0] and self.ID == 1:
+            self.explosion.play()
             self.score += 1
             ball.started = False
             ball.w = 1
             ball.size = 16
             self.size = 90
             ball.screen_shake_time = 30
-            for i in range(60):
-                ball.particles.append([pygame.Vector2(ball.pos),pygame.Vector2(random.randint(-10,-5),random.randint(-10,10))/3,random.randint(-25,34)])
+            for i in range(30):
+                ball.particles.append([pygame.Vector2(ball.pos),pygame.Vector2(random.randint(-10,-5),random.randint(-10,10))/3,random.randint(25,34),random.choice([True, False])])
 
         # making player height reset to original
         if not ball.started:
@@ -285,16 +314,22 @@ class RandomizeParticle:
         self.ball_min_radius = 4
         self.ball_size_multiplier = 2
 
+        # sound effects
+        self.collision_hit = pygame.mixer.Sound('assets/sound-effects/randomParticle.mp3')
+        self.collision_hit.set_volume(0.1)
+
         # effects and graphics
-        self.sparks = []
         self.color = (random.randint(100,255),random.randint(100,255),random.randint(100,255))
+        self.light_effect = True
+        self.light_surface = surf_circle(self.w+4,(self.color[0]/3,self.color[1]/3,self.color[2]/3),(0,0,0))
         self.change_color_timer = time.perf_counter()
-        self.play_explosion = False
+        self.play_explosion = False # not used
         self.explosion_dictionary = {"r":16,"color":(255,255,255),"r2":0}
         self.explosion_surf = surf_circle(self.explosion_dictionary.get("r"),self.explosion_dictionary.get("color"),(0,0,0))
 
     def pick_effect(self,b:Ball,p1:Player,p2:Player):
         if not self.play_explosion:
+            self.collision_hit.play()
             if self.effect_ID == 0 and b.size < self.ball_max_radius: # making ball bigger
                 b.size *= self.ball_size_multiplier
             elif self.effect_ID == 1 and b.size > self.ball_min_radius: # making ball smaller
@@ -314,6 +349,9 @@ class RandomizeParticle:
         # drawing the player 
         if not self.play_explosion:
             pygame.draw.circle(surface,self.color,(self.pos.x+self.w/2,self.pos.y+self.h/2),self.w/2)
+            if self.light_effect:
+                self.light_surface = surf_circle(self.w+4,(self.color[0]/3,self.color[1]/3,self.color[2]/3),(0,0,0))
+                surface.blit(self.light_surface,(int((self.pos.x+self.w/2)-self.light_surface.get_width()/2),int((self.pos.y+self.h/2)-self.light_surface.get_height()/2)),special_flags=BLEND_RGB_ADD)
         
         # is here to change the color every second
         if (time.perf_counter()-self.change_color_timer) > 1:

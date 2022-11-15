@@ -35,7 +35,7 @@ def main() -> None:
     # debug stuff
     debug = False
     debug_font = pygame.font.Font(None,15)
-    max_fps = 60
+    max_fps = 1000
 
 
     # dictionary's and simple objects/structures
@@ -142,7 +142,7 @@ def main() -> None:
             # display_rotation_offset += random.randint(-1,1)/10
             # WS[0] -= 2
             # WS[1] -= 2
-            ball.screen_shake_time -= 1
+            ball.screen_shake_time -= 1*dt
         else:
             WS = [800,640]
             display_rotation_offset = 0 
