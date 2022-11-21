@@ -8,9 +8,10 @@ import sys
 
 import entities
 import effects
-
+import UI
 
 pygame.init()
+
 
 def draw_debug(surface:pygame.Surface,font:pygame.font.Font,*args:tuple):
     # arg structure will be 0 = name, 1 = value
@@ -21,7 +22,7 @@ def main() -> None:
     ZOOM = 1
     WS = (800,640)
     DS = (WS[0]/ZOOM,WS[1]/ZOOM)
-    window = pygame.display.set_mode(WS,FULLSCREEN)
+    window = pygame.display.set_mode(WS)
     display = pygame.Surface(DS)
     UI_display = pygame.Surface(DS)
     clock = pygame.time.Clock()
@@ -30,6 +31,7 @@ def main() -> None:
 
     # constants
     bgcolor = (0,0,100)
+    
 
 
     # debug stuff
@@ -52,6 +54,8 @@ def main() -> None:
     RandomizeParticles = []
     amount_of_RandomizeParticles = 8
 
+    menu = UI.Menu(DS)
+
     # text
 
 
@@ -64,91 +68,107 @@ def main() -> None:
 
     RandomizeParticle_timer = 0.0
 
-    running = True
-    while running:
+    while menu.menu_on or menu.game_on:
         dt = time.perf_counter() - last_time
         dt *= 60
         last_time = time.perf_counter()
 
         display.fill((0,1,0))
         UI_display.fill((0,0,0))
-        pygame.draw.rect(display,bgcolor,pygame.Rect(1,1,799,639))
+        if menu.game_on and not menu.menu_on:
+            pygame.draw.rect(display,bgcolor,pygame.Rect(1,1,799,639))
 
-        #---DISPLAY---#
+            #---DISPLAY---#
 
-        # Logic
-        ball.Update(dt)
-        player1.Update(dt,ball)
-        player2.Update(dt,ball)
-
-
-        if (time.perf_counter() - RandomizeParticle_timer) > 10 and ball.started:
-            for i in range(amount_of_RandomizeParticles):
-                RandomizeParticles.append(entities.RandomizeParticle(DS))
-                RandomizeParticle_timer = time.perf_counter()
+            # Logic
+            ball.Update(dt)
+            player1.Update(dt,ball)
+            player2.Update(dt,ball)
 
 
-        # Rendering 
-        pygame.draw.rect(display,(255,255,255),pygame.Rect(DS[0]/2-2,0,4,DS[1]))
-        ball.Render(display,dt)
-        player1.Render(display,dt)
-        player2.Render(display,dt)
-
-        # RandomizeParticles
-        for i,p in sorted(enumerate(RandomizeParticles), reverse=True):
-            p.Update(dt,ball,player1,player2)
-            p.Render(display,dt)
-            if not p.alive:
-                RandomizeParticles.pop(i)
-
-        #--UI_DISPLAY---#
-
-        # Logic
+            if (time.perf_counter() - RandomizeParticle_timer) > 10 and ball.started:
+                for i in range(amount_of_RandomizeParticles):
+                    RandomizeParticles.append(entities.RandomizeParticle(DS))
+                    RandomizeParticle_timer = time.perf_counter()
 
 
-        # Rendering
-        player_score_text = Game_font.render(f"{player1.score}    {player2.score}",False,(255,255,255))
-        UI_display.blit(player_score_text,(DS[0]/2-player_score_text.get_width()/2,10))
+            # Rendering 
+            pygame.draw.rect(display,(255,255,255),pygame.Rect(DS[0]/2-2,0,4,DS[1]))
+            ball.Render(display,dt)
+            player1.Render(display,dt)
+            player2.Render(display,dt)
 
-        if debug:
-            draw_debug(UI_display,debug_font,
-                ("fps",clock.get_fps()),
-                ("ball velocity", ball.vel),("player1 velocity",player1.vel),("player2 velocity",player2.vel),
-                ("",""),
-                ("ball position", ball.pos), ("player1 position", player1.pos), ("player2 position", player2.pos))
+            # RandomizeParticles
+            for i,p in sorted(enumerate(RandomizeParticles), reverse=True):
+                p.Update(dt,ball,player1,player2)
+                p.Render(display,dt)
+                if not p.alive:
+                    RandomizeParticles.pop(i)
 
+            #--UI_DISPLAY---#
+
+            # Logic
+
+
+            # Rendering
+            player_score_text = Game_font.render(f"{player1.score}    {player2.score}",False,(255,255,255))
+            UI_display.blit(player_score_text,(DS[0]/2-player_score_text.get_width()/2,10))
+
+            if debug:
+                draw_debug(UI_display,debug_font,
+                    ("fps",clock.get_fps()),
+                    ("ball velocity", ball.vel),("player1 velocity",player1.vel),("player2 velocity",player2.vel),
+                    ("",""),
+                    ("ball position", ball.pos), ("player1 position", player1.pos), ("player2 position", player2.pos))
+            
+            for event in pygame.event.get():
+                if event.type == KEYDOWN:
+                    if event.key == K_SPACE and not ball.started:
+                        RandomizeParticle_timer = time.perf_counter()
+                        ball.dir = pygame.Vector2(random.choice([-1,1]),random.choice([-1,1]))
+                        ball.vel.x, ball.vel.y = ball.vel.x*ball.dir.x, ball.vel.y*ball.dir.y
+                        ball.started = True
+                    if event.key == K_F10:
+                        if debug:
+                            debug = False
+                        else:
+                            debug = True
+
+                if event.type == QUIT:
+                    menu.menu_on = False
+                    menu.game_on = False
+            
+            if ball.screen_shake_time > 0:
+
+                display_offset[0] = random.randint(-5,5)
+                display_offset[1] = random.randint(-5,5)
+                # display_rotation_offset += random.randint(-1,1)/10
+                # WS[0] -= 2
+                # WS[1] -= 2
+                ball.screen_shake_time -= 1*dt
+            else:
+                WS = [800,640]
+                display_rotation_offset = 0 
+                display_offset = [0,0]
+            
+        elif menu.menu_on and not menu.game_on:
+
+            # logic
+            menu.Update(dt)
+
+            #--DISPLAY--#
+
+            #--UI_DISPLAY--#
+
+            # Rendering
+            menu.Render(UI_display)
+
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    menu.menu_on = False
+                    menu.game_on = False
         pygame.display.update()
         UI_display.set_colorkey((0,0,0))
-        
-        for event in pygame.event.get():
-            if event.type == KEYDOWN:
-                if event.key == K_SPACE and not ball.started:
-                    RandomizeParticle_timer = time.perf_counter()
-                    ball.dir = pygame.Vector2(random.choice([-1,1]),random.choice([-1,1]))
-                    ball.vel.x, ball.vel.y = ball.vel.x*ball.dir.x, ball.vel.y*ball.dir.y
-                    ball.started = True
-                if event.key == K_F10:
-                    if debug:
-                        debug = False
-                    else:
-                        debug = True
-
-            if event.type == QUIT:
-                running = False
-        
-        if ball.screen_shake_time > 0:
-            display_offset[0] = random.randint(-5,5)
-            display_offset[1] = random.randint(-5,5)
-            # display_rotation_offset += random.randint(-1,1)/10
-            # WS[0] -= 2
-            # WS[1] -= 2
-            ball.screen_shake_time -= 1*dt
-        else:
-            WS = [800,640]
-            display_rotation_offset = 0 
-            display_offset = [0,0]
-            
-        
         window.fill((1,0,0))
         surf = pygame.transform.scale(display,WS) 
         surf_rot = pygame.transform.rotate(surf,display_rotation_offset)    
