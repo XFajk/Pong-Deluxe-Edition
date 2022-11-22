@@ -74,7 +74,7 @@ class Ball:
             p[0] += p[1]*dt
             p[2] -= 0.5*dt
 
-            pygame.draw.circle(surface,(0,150,0),(p[0].x,p[0].y),p[2])
+            pygame.draw.circle(surface,(int(self.color[0]/1.46),int(self.color[1]/1.46),int(self.color[2]/1.46)),(p[0].x,p[0].y),p[2])
 
             if p[2] <= 0:
                 self.follow_particles.pop(i)

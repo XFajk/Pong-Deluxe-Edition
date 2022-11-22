@@ -19,6 +19,32 @@ def draw_debug(surface:pygame.Surface,font:pygame.font.Font,*args:tuple):
         surface.blit(font.render(f"{a[0]}: {a[1]}",True,(255,255,255)),(5,5+i*17))
 
 def main() -> None:
+
+    # loading save
+    # data structure p1.score p2.score volume p1.color p2.color ball.color background.color
+
+    save = open("save.txt", 'r')
+    save_data = save.readline()
+    save.close()
+    save_data = save_data.split(' ')
+
+    try:
+        for i in range(len(save_data)):
+            if save_data[i].find(',')>-1:
+                save_data[i] = list(save_data[i].split(','))
+                for j in range(len(save_data[i])):
+                    save_data[i][j] = int(save_data[i][j])
+                save_data[i] = tuple(save_data[i])
+            elif save_data[i].find('.')>-1:
+                save_data[i] = float(save_data[i])
+            else:
+                save_data[i] = int(save_data[i])
+    except:
+        save_data = [0, 0, 0.5, (255,255,255), (255,255,255), (0,220,0), (0,0,100)]
+
+    print(save_data)
+
+
     ZOOM = 1
     WS = (800,640)
     DS = (WS[0]/ZOOM,WS[1]/ZOOM)
@@ -30,9 +56,7 @@ def main() -> None:
     last_time = time.perf_counter()
 
     # constants
-    bgcolor = (0,0,100)
-    
-
+    bgcolor = save_data[6]
 
     # debug stuff
     debug = False
@@ -48,9 +72,10 @@ def main() -> None:
 
 
     # entities and objects
-    ball = entities.Ball(DS,(0,220,0))
-    player1 = entities.Player((10,DS[1]/2),DS,id=1)
-    player2 = entities.Player((DS[0]-16-10,DS[1]/2),DS,id=2)
+    ball = entities.Ball(DS,save_data[5])
+    player1 = entities.Player((10,DS[1]/2),DS,id=1,color=save_data[3])
+    player2 = entities.Player((DS[0]-16-10,DS[1]/2),DS,id=2,color=save_data[4])
+    player1.score, player2.score = save_data[0],save_data[1]
     RandomizeParticles = []
     amount_of_RandomizeParticles = 8
 
