@@ -40,6 +40,7 @@ def main() -> None:
             else:
                 save_data[i] = int(save_data[i])
     except:
+        print("err")
         save_data = [0, 0, 0.5, (255,255,255), (255,255,255), (0,220,0), (0,0,100)]
 
     print(save_data)
@@ -48,7 +49,7 @@ def main() -> None:
     ZOOM = 1
     WS = (800,640)
     DS = (WS[0]/ZOOM,WS[1]/ZOOM)
-    window = pygame.display.set_mode(WS,FULLSCREEN)
+    window = pygame.display.set_mode(WS)
     display = pygame.Surface(DS)
     UI_display = pygame.Surface(DS)
     clock = pygame.time.Clock()
@@ -75,7 +76,6 @@ def main() -> None:
     ball = entities.Ball(DS,save_data[5])
     player1 = entities.Player((10,DS[1]/2),DS,id=1,color=save_data[3])
     player2 = entities.Player((DS[0]-16-10,DS[1]/2),DS,id=2,color=save_data[4])
-    player1.score, player2.score = save_data[0],save_data[1]
     RandomizeParticles = []
     amount_of_RandomizeParticles = 8
 
@@ -179,8 +179,11 @@ def main() -> None:
         elif menu.menu_on and not menu.game_on:
 
             # logic
-            menu.Update(dt)
-
+            menu.Update(dt,save_data)
+            player1.score = menu.scores[0]
+            player2.score = menu.scores[1]
+            
+            
             #--DISPLAY--#
 
             #--UI_DISPLAY--#

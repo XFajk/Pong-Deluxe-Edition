@@ -71,6 +71,9 @@ class Menu:
         self.menu_on = True
         self.game_on = False
 
+        # logic variables 
+        self.scores = [0,0]
+
         # buttons
         self.Start = Button(self.DS,(0,DS[1]/2-100),"START",self.default_font,(255,255,255),(32, 107, 10),(59, 196, 18),True,True,True)
         self.Continue = Button(self.DS,(0,DS[1]/2-35),"CONTINUE",self.default_font,(255,255,255),(107, 107, 11),(222, 222, 22),True,True,True)
@@ -83,7 +86,7 @@ class Menu:
         self.Continue.Render(surface)
         self.Quit.Render(surface)
 
-    def Update(self,dt):
+    def Update(self,dt:float,save_data:list):
         x,y = pygame.mouse.get_pos()
         mouse_input = pygame.mouse.get_pressed()
 
@@ -107,6 +110,8 @@ class Menu:
         if self.Continue.rect.collidepoint((x,y)):
             self.Continue.on_button()
             if mouse_input[0]:
+                self.scores[0] = save_data[0]
+                self.scores[1] = save_data[1]
                 self.menu_on = False
                 self.game_on = True
         else:
