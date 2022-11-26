@@ -49,7 +49,7 @@ def main() -> None:
     ZOOM = 1
     WS = (800,640)
     DS = (WS[0]/ZOOM,WS[1]/ZOOM)
-    window = pygame.display.set_mode(WS)
+    window = pygame.display.set_mode(WS,FULLSCREEN)
     display = pygame.Surface(DS)
     UI_display = pygame.Surface(DS)
     clock = pygame.time.Clock()
@@ -187,14 +187,23 @@ def main() -> None:
             #--DISPLAY--#
 
             #--UI_DISPLAY--#
-
-            # Rendering
             menu.Render(UI_display)
+            
+            # mouse drawing
+            pygame.mouse.set_visible(False)
+            mouse_pos = pygame.mouse.get_pos()
+            
+            pygame.draw.polygon(UI_display,(255,255,255),(mouse_pos, (mouse_pos[0]+15,mouse_pos[1]+5), (mouse_pos[0]+5,mouse_pos[1]+15)))
+
+            pygame.draw.line(UI_display,(0,0,0),mouse_pos,(mouse_pos[0]+15,mouse_pos[1]+5),width=3)
+            pygame.draw.line(UI_display,(0,0,0),mouse_pos,(mouse_pos[0]+5,mouse_pos[1]+15),width=3)
+            pygame.draw.line(UI_display,(0,0,0),(mouse_pos[0]+5,mouse_pos[1]+15),(mouse_pos[0]+15,mouse_pos[1]+5),width=3)
 
             for event in pygame.event.get():
                 if event.type == QUIT:
                     menu.menu_on = False
                     menu.game_on = False
+
         pygame.display.update()
         UI_display.set_colorkey((0,0,0))
         window.fill((1,0,0))
