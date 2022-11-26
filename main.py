@@ -23,33 +23,33 @@ def main() -> None:
     # loading save
     # data structure p1.score p2.score volume p1.color p2.color ball.color background.color
 
-    save = open("save.txt", 'r')
-    save_data = save.readline()
-    save.close()
-    save_data = save_data.split(' ')
+    load = open("save.txt", 'r')
+    saved_data = load.readline()
+    load.close()
+    saved_data = saved_data.split(' ')
 
     try:
-        for i in range(len(save_data)):
-            if save_data[i].find(',')>-1:
-                save_data[i] = list(save_data[i].split(','))
-                for j in range(len(save_data[i])):
-                    save_data[i][j] = int(save_data[i][j])
-                save_data[i] = tuple(save_data[i])
-            elif save_data[i].find('.')>-1:
-                save_data[i] = float(save_data[i])
+        for i in range(len(saved_data)):
+            if saved_data[i].find(',')>-1:
+                saved_data[i] = list(saved_data[i].split(','))
+                for j in range(len(saved_data[i])):
+                    saved_data[i][j] = int(saved_data[i][j])
+                saved_data[i] = tuple(saved_data[i])
+            elif saved_data[i].find('.')>-1:
+                saved_data[i] = float(saved_data[i])
             else:
-                save_data[i] = int(save_data[i])
+                saved_data[i] = int(saved_data[i])
     except:
         print("err")
-        save_data = [0, 0, 0.5, (255,255,255), (255,255,255), (0,220,0), (0,0,100)]
+        saved_data = [0, 0, 0.5, (255,255,255), (255,255,255), (0,220,0), (0,0,100)]
 
-    print(save_data)
+    print(saved_data)
 
 
     ZOOM = 1
     WS = (800,640)
     DS = (WS[0]/ZOOM,WS[1]/ZOOM)
-    window = pygame.display.set_mode(WS)
+    window = pygame.display.set_mode(WS,FULLSCREEN)
     display = pygame.Surface(DS)
     UI_display = pygame.Surface(DS)
     clock = pygame.time.Clock()
@@ -57,12 +57,13 @@ def main() -> None:
     last_time = time.perf_counter()
 
     # constants
-    bgcolor = save_data[6]
+    bgcolor = saved_data[6]
 
     # debug stuff
     debug = False
     debug_font = pygame.font.Font(None,15)
     max_fps = 1000
+    volume = saved_data[2]
 
 
     # dictionary's and simple objects/structures
@@ -73,9 +74,9 @@ def main() -> None:
 
 
     # entities and objects
-    ball = entities.Ball(DS,save_data[5])
-    player1 = entities.Player((10,DS[1]/2),DS,id=1,color=save_data[3])
-    player2 = entities.Player((DS[0]-16-10,DS[1]/2),DS,id=2,color=save_data[4])
+    ball = entities.Ball(DS,saved_data[5])
+    player1 = entities.Player((10,DS[1]/2),DS,id=1,color=saved_data[3])
+    player2 = entities.Player((DS[0]-16-10,DS[1]/2),DS,id=2,color=saved_data[4])
     RandomizeParticles = []
     amount_of_RandomizeParticles = 8
 
@@ -179,7 +180,7 @@ def main() -> None:
         elif menu.menu_on and not menu.game_on:
 
             # logic
-            menu.Update(dt,save_data)
+            menu.Update(dt,saved_data)
             player1.score = menu.scores[0]
             player2.score = menu.scores[1]
             
@@ -219,6 +220,11 @@ def main() -> None:
 
         clock.tick(max_fps)
         pygame.display.set_caption(f"pong deluxe")
+
+    save = open("save.txt", "w")
+    # data structure p1.score p2.score volume p1.color p2.color ball.color background.color
+    save.write(f"{player1.score} {player2.score} {volume} {player1.color[0]},{player1.color[1]},{player1.color[2]} {player2.color[0]},{player2.color[1]},{player2.color[2]} {ball.color[0]},{ball.color[1]},{ball.color[2]} {bgcolor[0]},{bgcolor[1]},{bgcolor[2]}")
+    save.close()
 
 
 if __name__ == "__main__":
