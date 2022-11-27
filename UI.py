@@ -17,7 +17,7 @@ class Button:
         self.alternative_color = alternative_color
         self.expand = expand
         self.change_color = change_color
-
+        
         self.rendered_text = self.font.render(self.text,False,self.text_color)
         if if_x_center:
             self.pos.x = DS[0]/2-self.rendered_text.get_width()/2
@@ -28,11 +28,17 @@ class Button:
         self.min_w,self.min_h = self.w,self.h
         self.max_w,self.max_h = self.w+self.w/10,self.h+self.h/5
         self.rect = pygame.Rect(self.pos.x,self.pos.y,self.w,self.h)
+        self.set_timer = False
+        self.timer = None
     
+
     def change_width_and_height(self,w,h):
         self.w,self.h = w,h
 
     def on_button(self):
+        if not self.set_timer:
+            self.timer = time.perf_counter()
+            self.set_timer = True
         if self.expand:
             if self.w < self.max_w:
                 self.pos.x -= 0.5
@@ -44,6 +50,9 @@ class Button:
             self.button_color = self.alternative_color
         
     def off_button(self):
+        if self.set_timer:
+            self.timer = None
+            self.set_timer = False
         if self.expand:
             if self.w > self.min_w:
                 self.pos.x += 0.5
@@ -61,12 +70,41 @@ class Button:
 
 
 
+class Slider:
+    def __init__(self,DS:tuple,pos:tuple,value:float | int,font:pygame.font.Font, text_color:tuple=(255,255,255), button_color:tuple=(255,0,0), alternative_color:tuple=(100,0,0), expand:bool=False,change_color:bool=True,if_x_center:bool=False,if_y_center:bool=False):
+        
+        self.DS = DS
+
+        self.pos = pygame.Vector2(pos)
+        self.w, self.h = 10,10
+        self.font = font
+        self.text_color = text_color 
+        self.button_color = button_color
+        self.alternative_color = alternative_color
+        self.value = value 
+        self.rendered_value = self.font.render(f"{self.value}", False, self.text_color)
+        self.change_color = change_color 
+        self.expand = expand 
+
+        self.sub = Button(DS,self.pos,"<",font,text_color,button_color,alternative_color,expand,change_color)
+        self.add = Button(DS,(self.pos.x+20+self.sub.rect.w+self.rendered_value.get_width(),self.pos.y),">",font,text_color,button_color,alternative_color,expand,change_color)     
+
+    def Render(self,surface:pygame.Surface):        
+        self.rendered_value = self.font.render(f"{self.value}", False, self.text_color)
+        self.add.pos.x = self.pos.x+20+self.sub.rect.w+self.rendered_value.get_width()
+
+        self.add.Render(surface)
+        self.sub.Render(surface)
+        surface.blit(self.rendered_value,(self.pos.x + self.sub.rect.w + 10, self.pos.y+5))
+    
+
 
 class Menu:
     def __init__(self,DS): 
         # constants
         self.DS = DS    
         self.default_font = pygame.font.Font('assets/ghostclanital.ttf', 50)
+        self.slider_font = pygame.font.Font('assets/ghostclanital.ttf', 30)
 
         # state variables
         self.menu_on = True
@@ -84,7 +122,7 @@ class Menu:
 
         # options buttons
         self.Back = Button(self.DS,(0,DS[1]/2+170),"BACK",self.default_font,(255,255,255),(10, 58, 107),(17, 111, 207),True,True,True)
-
+        self.Slider1 = Slider(self.DS,(100,100),255,self.slider_font,(255,255,255),(10,58,107),(17,111,207),True,True)
 
 
     def Render(self,surface:pygame.Surface):
@@ -95,6 +133,7 @@ class Menu:
             self.Quit.Render(surface)
         else:
             self.Back.Render(surface)
+            self.Slider1.Render(surface)
 
     def Update(self,dt:float,save_data:list):
         x,y = pygame.mouse.get_pos()
@@ -141,3 +180,15 @@ class Menu:
                     self.options_on = False
             else:
                 self.Back.off_button()
+
+            if self.Slider1.sub.rect.collidepoint((x,y)):
+                self.Slider1.sub.on_button()
+                self.Slider1.add.text_pos = self.Slider1.add.pos + pygame.Vector2(5,5)
+                if mouse_input[0]:
+                    if (time.perf_counter() - self.Slider1.sub.timer) > 0.2:
+                        self.Slider1.value -= 5
+                        self.Slider1.sub.timer = time.perf_counter()
+            else:
+                self.Slider1.sub.off_button()
+
+
