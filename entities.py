@@ -28,9 +28,10 @@ def surf_rect(size:tuple,color=(255,255,255)) -> pygame.Surface:
 
 
 class Ball:
-    def __init__(self,DS,color,sprite=None):
+    def __init__(self,DS,volume,color,sprite=None):
         # constants
         self.DS = DS
+        self.volume = volume
 
         # movment logic variables
         self.w, self.h = 1, 16
@@ -49,6 +50,7 @@ class Ball:
 
         # sound effects
         self.collision_hit = pygame.mixer.Sound('assets/sound-effects/collision_hit2.mp3')
+        self.collision_hit.set_volume(1.0*self.volume)
 
         # effects and graphics
         self.light_effect = True
@@ -126,10 +128,11 @@ class Ball:
             
 
 class Player:
-    def __init__(self,pos:tuple,DS:list,color:tuple=(255,255,255),sprite:pygame.Surface=None,id:int=1):
+    def __init__(self,volume,pos:tuple,DS:list,color:tuple=(255,255,255),sprite:pygame.Surface=None,id:int=1):
         # constants
         self.DS = DS
         self.ID:int = id
+        self.volume = volume
 
         # movment variables
         self.w, self.h = 16,0
@@ -152,7 +155,8 @@ class Player:
         # sounds
         self.hit = pygame.mixer.Sound('assets/sound-effects/collision_hit.mp3')
         self.explosion = pygame.mixer.Sound('assets/sound-effects/Game_over_explosion.mp3')
-        self.explosion.set_volume(0.3)
+        self.explosion.set_volume(0.3*self.volume)
+        self.hit.set_volume(1.0*self.volume)
     
     def Render(self,surface:pygame.Surface,dt:float):
         if self.sprite != None:
@@ -289,9 +293,10 @@ class Player:
 
                 
 class RandomizeParticle:
-    def __init__(self,DS:tuple):
+    def __init__(self,DS:tuple,volme):
         # constants
         self.DS = DS
+        self.volme = volme
 
         # movement logic variables
         self.w, self.h = 12,12
@@ -316,7 +321,7 @@ class RandomizeParticle:
 
         # sound effects
         self.collision_hit = pygame.mixer.Sound('assets/sound-effects/randomParticle.mp3')
-        self.collision_hit.set_volume(0.1)
+        self.collision_hit.set_volume(0.1*self.volume)
 
         # effects and graphics
         self.color = (random.randint(100,255),random.randint(100,255),random.randint(100,255))

@@ -74,13 +74,13 @@ def main() -> None:
 
 
     # entities and objects
-    ball = entities.Ball(DS,saved_data[5])
-    player1 = entities.Player((10,DS[1]/2),DS,id=1,color=saved_data[3])
-    player2 = entities.Player((DS[0]-16-10,DS[1]/2),DS,id=2,color=saved_data[4])
+    ball = entities.Ball(DS,volume,saved_data[5])
+    player1 = entities.Player(volume,(10,DS[1]/2),DS,id=1,color=saved_data[3])
+    player2 = entities.Player(volume,(DS[0]-16-10,DS[1]/2),DS,id=2,color=saved_data[4])
     RandomizeParticles = []
     amount_of_RandomizeParticles = 8
 
-    menu = UI.Menu(DS)
+    menu = UI.Menu(DS,volume)
 
     # text
 
@@ -111,10 +111,9 @@ def main() -> None:
             player1.Update(dt,ball)
             player2.Update(dt,ball)
 
-
             if (time.perf_counter() - RandomizeParticle_timer) > 10 and ball.started:
                 for i in range(amount_of_RandomizeParticles):
-                    RandomizeParticles.append(entities.RandomizeParticle(DS))
+                    RandomizeParticles.append(entities.RandomizeParticle(DS,volume))
                     RandomizeParticle_timer = time.perf_counter()
 
 
@@ -183,7 +182,13 @@ def main() -> None:
             menu.Update(dt,saved_data)
             player1.score = menu.scores[0]
             player2.score = menu.scores[1]
-            
+
+            # redeclarations
+            ball = entities.Ball(DS,volume,saved_data[5])
+            player1 = entities.Player(volume,(10,DS[1]/2),DS,id=1,color=saved_data[3])
+            player2 = entities.Player(volume,(DS[0]-16-10,DS[1]/2),DS,id=2,color=saved_data[4])
+            RandomizeParticles = []
+            amount_of_RandomizeParticles = 8            
             
             #--DISPLAY--#
 

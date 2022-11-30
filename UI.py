@@ -76,7 +76,6 @@ class Slider:
         self.DS = DS
 
         self.pos = pygame.Vector2(pos)
-        self.w, self.h = 10,10
         self.font = font
         self.text_color = text_color 
         self.button_color = button_color
@@ -91,18 +90,19 @@ class Slider:
 
     def Render(self,surface:pygame.Surface):        
         self.rendered_value = self.font.render(f"{self.value}", False, self.text_color)
-        self.add.pos.x = self.pos.x+20+self.sub.rect.w+self.rendered_value.get_width()
+        self.add.pos.x = self.pos.x+20+self.sub.min_w+self.rendered_value.get_width()
 
         self.add.Render(surface)
         self.sub.Render(surface)
-        surface.blit(self.rendered_value,(self.pos.x + self.sub.rect.w + 10, self.pos.y+5))
+        surface.blit(self.rendered_value,(self.pos.x + self.sub.min_w + 10, self.pos.y+5))
     
 
 
 class Menu:
-    def __init__(self,DS): 
+    def __init__(self,DS,volume:float): 
         # constants
         self.DS = DS    
+        self.volume = volume
         self.default_font = pygame.font.Font('assets/ghostclanital.ttf', 50)
         self.slider_font = pygame.font.Font('assets/ghostclanital.ttf', 30)
 
@@ -122,7 +122,7 @@ class Menu:
 
         # options buttons
         self.Back = Button(self.DS,(0,DS[1]/2+170),"BACK",self.default_font,(255,255,255),(10, 58, 107),(17, 111, 207),True,True,True)
-        self.Slider1 = Slider(self.DS,(100,100),255,self.slider_font,(255,255,255),(10,58,107),(17,111,207),True,True)
+        self.VolumeSlider = Slider(self.DS,(100,100),self.volume,self.slider_font,(255,255,255),(10,58,107),(17,111,207),True,True)
 
 
     def Render(self,surface:pygame.Surface):
@@ -133,7 +133,7 @@ class Menu:
             self.Quit.Render(surface)
         else:
             self.Back.Render(surface)
-            self.Slider1.Render(surface)
+            self.VolumeSlider.Render(surface)
 
     def Update(self,dt:float,save_data:list):
         x,y = pygame.mouse.get_pos()
@@ -181,14 +181,30 @@ class Menu:
             else:
                 self.Back.off_button()
 
-            if self.Slider1.sub.rect.collidepoint((x,y)):
-                self.Slider1.sub.on_button()
-                self.Slider1.add.text_pos = self.Slider1.add.pos + pygame.Vector2(5,5)
+            # volume slider buttons
+            if self.VolumeSlider.sub.rect.collidepoint((x,y)):
+                self.VolumeSlider.sub.on_button()
+                self.VolumeSlider.add.text_pos = self.VolumeSlider.add.pos + pygame.Vector2(5,5)
                 if mouse_input[0]:
-                    if (time.perf_counter() - self.Slider1.sub.timer) > 0.2:
-                        self.Slider1.value -= 5
-                        self.Slider1.sub.timer = time.perf_counter()
+                    if (time.perf_counter() - self.VolumeSlider.sub.timer) > 0.2:
+                        self.VolumeSlider.value *= 10
+                        self.VolumeSlider.value -= 1
+                        self.VolumeSlider.value /= 10
+                        self.VolumeSlider.sub.timer = time.perf_counter()
             else:
-                self.Slider1.sub.off_button()
+                self.VolumeSlider.sub.off_button()
+
+
+            if self.VolumeSlider.add.rect.collidepoint((x,y)):
+                self.VolumeSlider.add.on_button()
+                #self.VolumeSlider.add.text_pos = self.VolumeSlider.add.pos + pygame.Vector2(5,7)
+                if mouse_input[0]:
+                    if (time.perf_counter() - self.VolumeSlider.add.timer) > 0.2:
+                        self.VolumeSlider.value *= 10
+                        self.VolumeSlider.value += 1
+                        self.VolumeSlider.value /= 10
+                        self.VolumeSlider.add.timer = time.perf_counter()
+            else:
+                self.VolumeSlider.add.off_button()
 
 
