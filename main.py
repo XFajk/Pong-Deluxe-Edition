@@ -74,13 +74,13 @@ def main() -> None:
 
 
     # entities and objects
-    ball = entities.Ball(DS,volume,saved_data[5])
-    player1 = entities.Player(volume,(10,DS[1]/2),DS,id=1,color=saved_data[3])
-    player2 = entities.Player(volume,(DS[0]-16-10,DS[1]/2),DS,id=2,color=saved_data[4])
+    menu = UI.Menu(DS,volume)
+
+    ball = entities.Ball(DS,menu.volume,saved_data[5])
+    player1 = entities.Player(menu.volume,(10,DS[1]/2),DS,id=1,color=saved_data[3])
+    player2 = entities.Player(menu.volume,(DS[0]-16-10,DS[1]/2),DS,id=2,color=saved_data[4])
     RandomizeParticles = []
     amount_of_RandomizeParticles = 8
-
-    menu = UI.Menu(DS,volume)
 
     # text
 
@@ -184,9 +184,9 @@ def main() -> None:
             player2.score = menu.scores[1]
 
             # redeclarations
-            ball = entities.Ball(DS,volume,saved_data[5])
-            player1 = entities.Player(volume,(10,DS[1]/2),DS,id=1,color=saved_data[3])
-            player2 = entities.Player(volume,(DS[0]-16-10,DS[1]/2),DS,id=2,color=saved_data[4])
+            ball = entities.Ball(DS,menu.volume,saved_data[5])
+            player1 = entities.Player(menu.volume,(10,DS[1]/2),DS,id=1,color=saved_data[3])
+            player2 = entities.Player(menu.volume,(DS[0]-16-10,DS[1]/2),DS,id=2,color=saved_data[4])
             RandomizeParticles = []
             amount_of_RandomizeParticles = 8            
             
@@ -237,7 +237,7 @@ def main() -> None:
 
     save = open("save.txt", "w")
     # data structure p1.score p2.score volume p1.color p2.color ball.color background.color
-    save.write(f"{player1.score} {player2.score} {volume} {player1.color[0]},{player1.color[1]},{player1.color[2]} {player2.color[0]},{player2.color[1]},{player2.color[2]} {ball.color[0]},{ball.color[1]},{ball.color[2]} {bgcolor[0]},{bgcolor[1]},{bgcolor[2]}")
+    save.write(f"{player1.score} {player2.score} {menu.volume} {player1.color[0]},{player1.color[1]},{player1.color[2]} {player2.color[0]},{player2.color[1]},{player2.color[2]} {ball.color[0]},{ball.color[1]},{ball.color[2]} {bgcolor[0]},{bgcolor[1]},{bgcolor[2]}")
     save.close()
 
 

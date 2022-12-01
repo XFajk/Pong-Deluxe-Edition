@@ -296,7 +296,7 @@ class RandomizeParticle:
     def __init__(self,DS:tuple,volme):
         # constants
         self.DS = DS
-        self.volme = volme
+        self.volume = volme
 
         # movement logic variables
         self.w, self.h = 12,12
