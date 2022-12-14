@@ -5,6 +5,24 @@ import math
 import time
 import random
 
+
+def surf_circle(r:float,color_of_circle:tuple,colorkey:tuple) -> pygame.Surface:
+    
+    s = pygame.Surface((r*2,r*2))
+    pygame.draw.circle(s,color_of_circle,(r,r),r)
+
+    try:
+        s.set_colorkey(colorkey)
+    except ValueError:
+        print("This is invalid colorkey:", colorkey)
+
+    return s
+
+def surf_rect(size:tuple,color=(255,255,255)) -> pygame.Surface:
+    s = pygame.Surface((size[0], size[1]))
+    pygame.draw.rect(s,color,(0,0,size[0],size[1]))
+    return s
+
 class Spark:
     def __init__(self, loc:list, angle:float, speed, color:tuple=(255,255,255), scale:float=1):
         self.loc = loc

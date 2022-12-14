@@ -21,7 +21,7 @@ def draw_debug(surface:pygame.Surface,font:pygame.font.Font,*args:tuple):
 def main() -> None:
 
     # loading save
-    # data structure p1.score p2.score volume p1.color p2.color ball.color background.color
+    # data structure p1.score p2.score volume p1.color p2.color ball.color background.color lighting
 
     load = open("save.txt", 'r')
     saved_data = load.readline()
@@ -41,7 +41,7 @@ def main() -> None:
                 saved_data[i] = int(saved_data[i])
     except:
         print("err")
-        saved_data = [0, 0, 0.5, (255,255,255), (255,255,255), (0,220,0), (0,0,100)]
+        saved_data = [0, 0, 0.5, (255,255,255), (255,255,255), (0,220,0), (0,0,100), 1]
 
     print(saved_data)
 
@@ -49,7 +49,7 @@ def main() -> None:
     ZOOM = 1
     WS = (800,640)
     DS = (WS[0]/ZOOM,WS[1]/ZOOM)
-    window = pygame.display.set_mode(WS,FULLSCREEN)
+    window = pygame.display.set_mode(WS)
     display = pygame.Surface(DS)
     UI_display = pygame.Surface(DS)
     clock = pygame.time.Clock()
@@ -64,6 +64,7 @@ def main() -> None:
     debug_font = pygame.font.Font(None,15)
     max_fps = 1000
     volume = saved_data[2]
+    lighting = saved_data[7]
 
 
     # dictionary's and simple objects/structures
@@ -74,11 +75,11 @@ def main() -> None:
 
 
     # entities and objects
-    menu = UI.Menu(DS,volume)
+    menu = UI.Menu(DS,volume,saved_data)
 
-    ball = entities.Ball(DS,menu.volume,saved_data[5])
-    player1 = entities.Player(menu.volume,(10,DS[1]/2),DS,id=1,color=saved_data[3])
-    player2 = entities.Player(menu.volume,(DS[0]-16-10,DS[1]/2),DS,id=2,color=saved_data[4])
+    ball = entities.Ball(DS,menu.volume,saved_data[5],1)
+    player1 = entities.Player(menu.volume,(10,DS[1]/2),DS,id=1,color=saved_data[3],lighting=1)
+    player2 = entities.Player(menu.volume,(DS[0]-16-10,DS[1]/2),DS,id=2,color=saved_data[4],lighting=1)
     RandomizeParticles = []
     amount_of_RandomizeParticles = 8
 
@@ -91,7 +92,6 @@ def main() -> None:
     # logic
     display_offset = [0,0]
     display_rotation_offset = 0
-
     RandomizeParticle_timer = 0.0
 
     while menu.menu_on or menu.game_on:
@@ -113,7 +113,7 @@ def main() -> None:
 
             if (time.perf_counter() - RandomizeParticle_timer) > 10 and ball.started:
                 for i in range(amount_of_RandomizeParticles):
-                    RandomizeParticles.append(entities.RandomizeParticle(DS,volume))
+                    RandomizeParticles.append(entities.RandomizeParticle(DS,volume,menu.lighting))
                     RandomizeParticle_timer = time.perf_counter()
 
 
@@ -183,10 +183,11 @@ def main() -> None:
             player1.score = menu.scores[0]
             player2.score = menu.scores[1]
 
-            # redeclarations
-            ball = entities.Ball(DS,menu.volume,saved_data[5])
-            player1 = entities.Player(menu.volume,(10,DS[1]/2),DS,id=1,color=saved_data[3])
-            player2 = entities.Player(menu.volume,(DS[0]-16-10,DS[1]/2),DS,id=2,color=saved_data[4])
+            # redecoration
+            ball = entities.Ball(DS,menu.volume,menu.ball_color,menu.lighting)
+            player1 = entities.Player(menu.volume,(10,DS[1]/2),DS,id=1,color=menu.player1_color,lighting=menu.lighting)
+            player2 = entities.Player(menu.volume,(DS[0]-16-10,DS[1]/2),DS,id=2,color=menu.player2_color,lighting=menu.lighting)
+            bgcolor = menu.background_color
             RandomizeParticles = []
             amount_of_RandomizeParticles = 8            
             
@@ -195,9 +196,9 @@ def main() -> None:
             #--UI_DISPLAY--#
             menu.Render(UI_display)
             
+            mouse_pos = pygame.mouse.get_pos()
             # mouse drawing
             pygame.mouse.set_visible(False)
-            mouse_pos = pygame.mouse.get_pos()
             
             pygame.draw.polygon(UI_display,(255,255,255),(mouse_pos, (mouse_pos[0]+15,mouse_pos[1]+5), (mouse_pos[0]+5,mouse_pos[1]+15)))
 
@@ -236,8 +237,9 @@ def main() -> None:
         pygame.display.set_caption(f"pong deluxe")
 
     save = open("save.txt", "w")
-    # data structure p1.score p2.score volume p1.color p2.color ball.color background.color
-    save.write(f"{player1.score} {player2.score} {menu.volume} {player1.color[0]},{player1.color[1]},{player1.color[2]} {player2.color[0]},{player2.color[1]},{player2.color[2]} {ball.color[0]},{ball.color[1]},{ball.color[2]} {bgcolor[0]},{bgcolor[1]},{bgcolor[2]}")
+    # data structure p1.score p2.score volume p1.color p2.color ball.color background.color lighting
+    save.write(f"{player1.score} {player2.score} {menu.volume} {int(player1.color[0])},{ int(player1.color[1]) },{ int(player1.color[2]) } { int(player2.color[0]) },{ int(player2.color[1]) },{ int(player2.color[2]) } { int(ball.color[0]) },{ int(ball.color[1]) },{ int(ball.color[2])} { int(bgcolor[0]) },{ int(bgcolor[1]) },{ int(bgcolor[2]) } { int(menu.lighting) }")
+    print(f"{player1.score} {player2.score} {menu.volume} {int(player1.color[0])},{ int(player1.color[1]) },{ int(player1.color[2]) } { int(player2.color[0]) },{ int(player2.color[1]) },{ int(player2.color[2]) } { int(ball.color[0]) },{ int(ball.color[1]) },{ int(ball.color[2])} { int(bgcolor[0]) },{ int(bgcolor[1]) },{ int(bgcolor[2]) } { int(menu.lighting) }" )
     save.close()
 
 

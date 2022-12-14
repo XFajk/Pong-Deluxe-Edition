@@ -6,29 +6,11 @@ import pygame
 from pygame.locals import *
 
 import effects
-
-
-def surf_circle(r:float,color_of_circle:tuple,colorkey:tuple) -> pygame.Surface:
-    
-    s = pygame.Surface((r*2,r*2))
-    pygame.draw.circle(s,color_of_circle,(r,r),r)
-
-    try:
-        s.set_colorkey(colorkey)
-    except ValueError:
-        print("This is invalid colorkey:", colorkey)
-
-    return s
-
-def surf_rect(size:tuple,color=(255,255,255)) -> pygame.Surface:
-    s = pygame.Surface((size[0], size[1]))
-    pygame.draw.rect(s,color,(0,0,size[0],size[1]))
-    return s
-
+from effects import surf_circle, surf_rect
 
 
 class Ball:
-    def __init__(self,DS,volume,color,sprite=None):
+    def __init__(self,DS:tuple,volume:float,color:tuple[int],lighting:int,sprite:pygame.Surface=None):
         # constants
         self.DS = DS
         self.volume = volume
@@ -53,7 +35,7 @@ class Ball:
         self.collision_hit.set_volume(1.0*self.volume)
 
         # effects and graphics
-        self.light_effect = True
+        self.light_effect = bool(lighting)
         self.light_surface = surf_circle(self.w*2,(color[0]/3,color[1]/3,color[2]/3),(0,0,0))
         self.sprite = sprite
         self.color = color
@@ -88,7 +70,7 @@ class Ball:
             s = surf_circle(r,(self.color[0]/3,self.color[1]/3,self.color[2]/3),(0,0,0))
 
             pygame.draw.circle(surface,self.color,(p[0].x,p[0].y),p[2])
-            if p[3]:
+            if p[3] and self.light_effect:
                 surface.blit(s,(p[0].x-(s.get_width()/2),p[0].y-(s.get_height()/2)),special_flags=BLEND_RGB_ADD)
 
             if p[2] <= 0:
@@ -128,7 +110,7 @@ class Ball:
             
 
 class Player:
-    def __init__(self,volume,pos:tuple,DS:list,color:tuple=(255,255,255),sprite:pygame.Surface=None,id:int=1):
+    def __init__(self,volume,pos:tuple,DS:list,color:tuple[int]=(255,255,255),lighting:int=1,sprite:pygame.Surface=None,id:int=1):
         # constants
         self.DS = DS
         self.ID:int = id
@@ -149,7 +131,7 @@ class Player:
         # effects and graphics
         self.color = color
         self.sprite = sprite
-        self.light_effect = True
+        self.light_effect = bool(lighting)
         self.light_surface = surf_rect((self.w+10,self.h+10),(self.color[0]/3,self.color[1]/3,self.color[2]/3))
 
         # sounds
@@ -293,10 +275,10 @@ class Player:
 
                 
 class RandomizeParticle:
-    def __init__(self,DS:tuple,volme):
+    def __init__(self,DS:tuple,volume,lighting:int):
         # constants
         self.DS = DS
-        self.volume = volme
+        self.volume = volume
 
         # movement logic variables
         self.w, self.h = 12,12
@@ -325,7 +307,7 @@ class RandomizeParticle:
 
         # effects and graphics
         self.color = (random.randint(100,255),random.randint(100,255),random.randint(100,255))
-        self.light_effect = True
+        self.light_effect = bool(lighting)
         self.light_surface = surf_circle(self.w+4,(self.color[0]/3,self.color[1]/3,self.color[2]/3),(0,0,0))
         self.change_color_timer = time.perf_counter()
         self.play_explosion = False # not used

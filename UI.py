@@ -5,8 +5,14 @@ import math
 import time
 import random
 
+from effects import surf_circle, surf_rect
+
+
 class Button:
-    def __init__(self,DS:tuple,pos:tuple, text:str,font:pygame.font.Font, text_color:tuple=(255,255,255), button_color:tuple=(255,0,0), alternative_color:tuple=(100,0,0), expand:bool=False,change_color:bool=True,if_x_center:bool=False,if_y_center:bool=False):
+    def __init__(self,DS:tuple,pos:tuple, text:str,font:pygame.font.Font, 
+    text_color:tuple=(255,255,255), button_color:tuple=(255,0,0), alternative_color:tuple=(100,0,0), 
+    expand:bool=False,change_color:bool=True,if_x_center:bool=False,if_y_center:bool=False):
+
         self.pos = pygame.Vector2(pos)
 
         self.text = text
@@ -71,10 +77,25 @@ class Button:
 
 
 class Slider:
-    def __init__(self,DS:tuple,pos:tuple,value,max_value,min_value,increment,font:pygame.font.Font, text_color:tuple=(255,255,255), button_color:tuple=(255,0,0), alternative_color:tuple=(100,0,0), expand:bool=False,change_color:bool=True,if_x_center:bool=False,if_y_center:bool=False):
+    def __init__(self,DS:tuple,pos:tuple,value,max_value,min_value,increment,font:pygame.font.Font, 
+    text_color:tuple=(255,255,255), button_color:tuple=(255,0,0), alternative_color:tuple=(100,0,0), 
+    expand:bool=False,change_color:bool=True,if_x_center:bool=False,if_y_center:bool=False,name_of_slider:str="",if_bool:bool=False):
+
         
         self.DS = DS
 
+        self.name_of_slider = ""
+        self.rendered_name = None
+        
+        # this makes sure that the name of the slider is not empty
+        if name_of_slider == "":
+            pass
+        else:
+            self.name_of_slider = name_of_slider
+            self.rendered_name = font.render(self.name_of_slider,False,(text_color))
+            
+
+        self.if_bool = if_bool
         self.max_value = max_value
         self.min_value = min_value
         self.increment = increment
@@ -84,8 +105,11 @@ class Slider:
         self.button_color = button_color
         self.alternative_color = alternative_color
         self.value = value 
+        if if_bool:
+            self.value = bool(self.value)
         self.rendered_value = self.font.render(f"{self.value}", False, self.text_color)
         self.rendered_value_w_h  = self.font.render(f"{self.max_value}", False, self.text_color).get_width(), self.font.render(f"{self.max_value}", False, self.text_color).get_height()
+        if if_bool: self.rendered_value_w_h = self.font.render(f"{bool(self.max_value)}",False, self.text_color).get_width(), self.font.render(f"{bool(self.max_value)}",False, self.text_color).get_height()
         self.change_color = change_color
         self.expand = expand  
 
@@ -94,7 +118,15 @@ class Slider:
 
         self.complete_width = self.sub.min_w+20+self.rendered_value_w_h[0]+30+self.add.min_w     
 
-    def Render(self,surface:pygame.Surface):        
+        if if_x_center:
+            self.pos.x = self.DS[0]/2-self.complete_width/2
+        if if_y_center:
+            self.pos.y = self.DS[1]/2-self.sub.min_w/2
+
+        self.sub = Button(DS,self.pos,"<",font,text_color,button_color,alternative_color,expand,change_color)
+        self.add = Button(DS,(self.pos.x+20+self.sub.min_w+self.rendered_value_w_h[0]+30,self.pos.y),">",font,text_color,button_color,alternative_color,expand,change_color)
+
+    def Render(self,surface:pygame.Surface):
         self.rendered_value = self.font.render(f"{self.value}", False, self.text_color)
         self.add.pos.x = self.pos.x+20+self.sub.min_w+self.rendered_value_w_h[0]+30
 
@@ -102,15 +134,57 @@ class Slider:
         self.sub.Render(surface)
         surface.blit(self.rendered_value,(self.pos.x+self.complete_width/2-self.rendered_value.get_width()/2, self.pos.y+5))
 
+        # drawing the name of the Slider
+        if self.rendered_name != None:
+            surface.blit(self.rendered_name,(self.pos.x+(self.complete_width-self.rendered_name.get_width())/2,self.pos.y-10-self.rendered_name.get_height()))
+
+    def basic_slider_logic(self,pos:tuple,mouse_input,input_timeout:float=0.15):
+        if self.sub.rect.collidepoint(pos):
+            self.sub.on_button()
+            self.add.text_pos = self.add.pos + pygame.Vector2(5,5)
+            if mouse_input[0]:
+                if (time.perf_counter() - self.sub.timer) > input_timeout:
+                    self.value *= 10
+                    if self.value > self.min_value*10:
+                        self.value -= self.increment*10
+                    self.value /= 10
+                    if self.if_bool: self.value = bool(self.value)
+                    self.sub.timer = time.perf_counter()
+        else:
+            self.sub.off_button()
+
+
+        if self.add.rect.collidepoint(pos):
+            self.add.on_button()
+            if mouse_input[0]:
+                self.add.text_pos = self.add.pos + pygame.Vector2(6,8)
+                if (time.perf_counter() - self.add.timer) > input_timeout:
+                    self.value *= 10
+                    if self.value < self.max_value*10:
+                        self.value += self.increment*10
+                    self.value /= 10
+                    if self.if_bool: self.value = bool(self.value)
+                    self.add.timer = time.perf_counter()
+        else:
+            self.add.off_button()
+            if self.add.w == self.add.min_w:
+                self.add.text_pos = self.add.pos + pygame.Vector2(5,5)
+
+
         
     
 
 
 class Menu:
-    def __init__(self,DS,volume:float): 
+    def __init__(self,DS,volume:float,sd:list): 
         # constants
         self.DS = DS    
+        self.lighting = sd[7]
         self.volume = volume
+        self.ball_color = sd[5]
+        self.player1_color = sd[3]
+        self.player2_color = sd[4]
+        self.background_color = sd[6]
         self.default_font = pygame.font.Font('assets/ghostclanital.ttf', 50)
         self.slider_font = pygame.font.Font('assets/ghostclanital.ttf', 30)
 
@@ -129,8 +203,35 @@ class Menu:
         self.Quit = Button(self.DS,(0,DS[1]/2+95),"QUIT",self.default_font,(255,255,255),(107, 12, 12),(222, 22, 22),True,True,True)
 
         # options buttons
-        self.Back = Button(self.DS,(0,DS[1]/2+170),"BACK",self.default_font,(255,255,255),(10, 58, 107),(17, 111, 207),True,True,True)
-        self.VolumeSlider = Slider(self.DS,(100,100),self.volume,1.0,0.0,0.1,self.slider_font,(255,255,255),(10,58,107),(17,111,207),True,True)
+        self.Back = Button(self.DS,(0,DS[1]/2+240),"BACK",self.default_font,(255,255,255),(10, 58, 107),(17, 111, 207),True,True,True)
+
+        # volume slider
+        self.VolumeSlider = Slider(self.DS,(0,100),self.volume,1.0,0.0,0.1,self.slider_font,(255,255,255),(10,58,107),(17,111,207),True,True,True,False,"volume")
+
+        # if lighting slider
+        self.LightSlider = Slider(self.DS,(100,100),self.lighting,1.0,0.0,1.0,self.slider_font,(255,255,255),(10, 58, 107),(17, 111, 207),True,True,False,False,"LIGHTING",True)
+
+        # ball color slider's
+        self.ballRedSlider = Slider(self.DS,(100,200),self.ball_color[0],255,0,5,self.slider_font,(255,255,255),(107, 12, 12),(222, 22, 22),True,True)
+        self.ballGreenSlider = Slider(self.DS,(0,200),self.ball_color[1],255,0,5,self.slider_font,(255,255,255),(32, 107, 10),(59, 196, 18),True,True,True,False,"BALL COLOR")
+        self.ballBlueSlider = Slider(self.DS,(534,200),self.ball_color[2],255,0,5,self.slider_font,(255,255,255),(10, 58, 107),(17, 111, 207),True,True,False,False)
+
+        # player1 color slider's
+        self.playerOneRedSlider = Slider(self.DS,(100,350),self.player1_color[0],255,0,5,self.slider_font,(255,255,255),(107, 12, 12),(222, 22, 22),True,True)
+        self.playerOneGreenSlider = Slider(self.DS,(0,350),self.player1_color[1],255,0,5,self.slider_font,(255,255,255),(32, 107, 10),(59, 196, 18),True,True,True,False,"COLOR OF PLAYERS")
+        self.playerOneBlueSlider = Slider(self.DS,(534,350),self.player1_color[2],255,0,5,self.slider_font,(255,255,255),(10, 58, 107),(17, 111, 207),True,True)
+
+        # player2 color slider's
+        self.playerTwoRedSlider = Slider(self.DS,(100,400),self.player2_color[0],255,0,5,self.slider_font,(255,255,255),(107, 12, 12),(222, 22, 22),True,True)
+        self.playerTwoGreenSlider = Slider(self.DS,(0,400),self.player2_color[1],255,0,5,self.slider_font,(255,255,255),(32, 107, 10),(59, 196, 18),True,True,True)
+        self.playerTwoBlueSlider = Slider(self.DS,(534,400),self.player2_color[2],255,0,5,self.slider_font,(255,255,255),(10, 58, 107),(17, 111, 207),True,True)
+
+        # background color slider's
+        self.backgroundRedSlider = Slider(self.DS,(100,500),self.background_color[0],255,0,5,self.slider_font,(255,255,255),(107, 12, 12),(222, 22, 22),True,True)
+        self.backgroundGreenSlider = Slider(self.DS,(0,500),self.background_color[1],255,0,5,self.slider_font,(255,255,255),(32, 107, 10),(59, 196, 18),True,True,True,False,"BACKGROUND COLOR")
+        self.backgroundBlueSlider = Slider(self.DS,(534,500),self.background_color[2],255,0,5,self.slider_font,(255,255,255),(10, 58, 107),(17, 111, 207),True,True)
+
+        
 
 
     def Render(self,surface:pygame.Surface):
@@ -140,10 +241,52 @@ class Menu:
             self.Continue.Render(surface)
             self.Quit.Render(surface)
         else:
+            pygame.draw.rect(surface,self.background_color,pygame.Rect(1,1,799,639))
             self.Back.Render(surface)
             self.VolumeSlider.Render(surface)
+            self.LightSlider.Render(surface)
+
+            # ball slider's
+            self.ballRedSlider.Render(surface)
+            self.ballGreenSlider.Render(surface)
+            self.ballBlueSlider.Render(surface)
+            # render the ball
+            pygame.draw.circle(surface,self.ball_color,(self.DS[0]/2,270),10)
+            if bool(self.LightSlider.value):
+                ball_light_surface = surf_circle(20,(self.ball_color[0]/3,self.ball_color[1]/3,self.ball_color[2]/3),(0,0,0))
+                surface.blit(ball_light_surface,(int((self.DS[0]/2)-ball_light_surface.get_width()/2),int((270)-ball_light_surface.get_height()/2)),special_flags=BLEND_RGB_ADD)
+
+            # player 1 slider's
+            self.playerOneRedSlider.Render(surface)
+            self.playerOneGreenSlider.Render(surface)
+            self.playerOneBlueSlider.Render(surface)
+            # player 2 slider's
+            self.playerTwoRedSlider.Render(surface)
+            self.playerTwoGreenSlider.Render(surface)
+            self.playerTwoBlueSlider.Render(surface)
+            # render of the player's
+            pygame.draw.rect(surface,self.player1_color,pygame.Rect(10,self.DS[1]/2-45,16,90))
+            if bool(self.LightSlider.value):
+                player1_light_surface = surf_rect((16+10,90+10),(self.player1_color[0]/3,self.player1_color[1]/3,self.player1_color[2]/3))
+                surface.blit(player1_light_surface, (10-5,(self.DS[1]/2-45)-5),special_flags=BLEND_RGB_ADD) 
+
+            pygame.draw.rect(surface,self.player2_color,pygame.Rect(self.DS[0]-16-10,self.DS[1]/2-45,16,90))
+            if bool(self.LightSlider.value):
+                player2_light_surface = surf_rect((16+10,90+10),(self.player2_color[0]/3,self.player2_color[1]/3,self.player2_color[2]/3))
+                surface.blit(player2_light_surface, ((self.DS[0]-16-10)-5,(self.DS[1]/2-45)-5),special_flags=BLEND_RGB_ADD) 
+
+            # background slider's
+            self.backgroundRedSlider.Render(surface)
+            self.backgroundGreenSlider.Render(surface)
+            self.backgroundBlueSlider.Render(surface)
+
+
+
+
+
 
     def Update(self,dt:float,save_data:list):
+
         x,y = pygame.mouse.get_pos()
         mouse_input = pygame.mouse.get_pressed()
 
@@ -189,36 +332,38 @@ class Menu:
             else:
                 self.Back.off_button()
 
-            # volume slider buttons
-            if self.VolumeSlider.sub.rect.collidepoint((x,y)):
-                self.VolumeSlider.sub.on_button()
-                self.VolumeSlider.add.text_pos = self.VolumeSlider.add.pos + pygame.Vector2(5,5)
-                if mouse_input[0]:
-                    if (time.perf_counter() - self.VolumeSlider.sub.timer) > 0.2:
-                        self.VolumeSlider.value *= 10
-                        if self.VolumeSlider.value > self.VolumeSlider.min_value*10:
-                            self.VolumeSlider.value -= self.VolumeSlider.increment*10
-                        self.VolumeSlider.value /= 10
-                        self.VolumeSlider.sub.timer = time.perf_counter()
-            else:
-                self.VolumeSlider.sub.off_button()
+            # volume slider
+            self.VolumeSlider.basic_slider_logic((x,y),mouse_input)
 
+            # lighting slider
+            self.LightSlider.basic_slider_logic((x,y),mouse_input)
 
-            if self.VolumeSlider.add.rect.collidepoint((x,y)):
-                self.VolumeSlider.add.on_button()
-                if mouse_input[0]:
-                    self.VolumeSlider.add.text_pos = self.VolumeSlider.add.pos + pygame.Vector2(6,8)
-                    if (time.perf_counter() - self.VolumeSlider.add.timer) > 0.2:
-                        self.VolumeSlider.value *= 10
-                        if self.VolumeSlider.value < self.VolumeSlider.max_value*10:
-                            self.VolumeSlider.value += self.VolumeSlider.increment*10
-                        self.VolumeSlider.value /= 10
-                        self.VolumeSlider.add.timer = time.perf_counter()
-            else:
-                self.VolumeSlider.add.off_button()
-                if self.VolumeSlider.add.w == self.VolumeSlider.add.min_w:
-                    self.VolumeSlider.add.text_pos = self.VolumeSlider.add.pos + pygame.Vector2(5,5)
-            
+            # ball slider's
+            self.ballRedSlider.basic_slider_logic((x,y),mouse_input)
+            self.ballGreenSlider.basic_slider_logic((x,y),mouse_input)
+            self.ballBlueSlider.basic_slider_logic((x,y),mouse_input)
+
+            # player 1 slider's
+            self.playerOneRedSlider.basic_slider_logic((x,y),mouse_input)
+            self.playerOneGreenSlider.basic_slider_logic((x,y),mouse_input)
+            self.playerOneBlueSlider.basic_slider_logic((x,y),mouse_input)
+
+            # player 2 slider's
+            self.playerTwoRedSlider.basic_slider_logic((x,y),mouse_input)
+            self.playerTwoGreenSlider.basic_slider_logic((x,y),mouse_input)
+            self.playerTwoBlueSlider.basic_slider_logic((x,y),mouse_input)
+
+            # background slider's
+            self.backgroundRedSlider.basic_slider_logic((x,y),mouse_input)
+            self.backgroundGreenSlider.basic_slider_logic((x,y),mouse_input)
+            self.backgroundBlueSlider.basic_slider_logic((x,y),mouse_input)
+
             self.volume = self.VolumeSlider.value
+            self.lighting = self.LightSlider.value
+            self.ball_color = (self.ballRedSlider.value,self.ballGreenSlider.value,self.ballBlueSlider.value)
+            self.player1_color = (self.playerOneRedSlider.value,self.playerOneGreenSlider.value,self.playerOneBlueSlider.value)
+            self.player2_color = (self.playerTwoRedSlider.value,self.playerTwoGreenSlider.value,self.playerTwoBlueSlider.value)
+            self.background_color = (self.backgroundRedSlider.value,self.backgroundGreenSlider.value,self.backgroundBlueSlider.value)
+
 
 
