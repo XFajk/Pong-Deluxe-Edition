@@ -95,7 +95,6 @@ def main() -> None:
     RandomizeParticle_timer = 0.0
 
     pygame.mixer.music.load("assets/music/Pong Deluxe.mp3")
-    pygame.mixer.music.set_volume(0.1)
 
     while menu.menu_on or menu.game_on:
         dt = time.perf_counter() - last_time
@@ -110,6 +109,7 @@ def main() -> None:
             #---DISPLAY---#
 
             # Logic
+            if not ball.started: pygame.mixer.music.stop()
             ball.Update(dt)
             player1.Update(dt,ball)
             player2.Update(dt,ball)
@@ -152,6 +152,7 @@ def main() -> None:
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
                     if event.key == K_SPACE and not ball.started:
+                        pygame.mixer.music.set_volume(0.2*volume)
                         pygame.mixer.music.play(-1)
                         RandomizeParticle_timer = time.perf_counter()
                         ball.dir = pygame.Vector2(random.choice([-1,1]),random.choice([-1,1]))
@@ -184,13 +185,13 @@ def main() -> None:
 
             # logic
             menu.Update(dt,saved_data)
-            player1.score = menu.scores[0]
-            player2.score = menu.scores[1]
 
             # redecoration
             ball = entities.Ball(DS,menu.volume,menu.ball_color,menu.lighting)
             player1 = entities.Player(menu.volume,(10,DS[1]/2),DS,id=1,color=menu.player1_color,lighting=menu.lighting)
             player2 = entities.Player(menu.volume,(DS[0]-16-10,DS[1]/2),DS,id=2,color=menu.player2_color,lighting=menu.lighting)
+            player1.score = menu.scores[0]
+            player2.score = menu.scores[1]
             bgcolor = menu.background_color
             RandomizeParticles = []
             amount_of_RandomizeParticles = 8            
