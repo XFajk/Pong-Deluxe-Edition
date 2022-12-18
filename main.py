@@ -21,7 +21,7 @@ def draw_debug(surface:pygame.Surface,font:pygame.font.Font,*args:tuple):
 def main() -> None:
 
     # loading save
-    # data structure p1.score p2.score volume p1.color p2.color ball.color background.color lighting
+    # data structure p1.score p2.score volume p1.color p2.color ball.color background.color lighting amount_of_RandomizeParticles ball.add_to_velocity play_until
 
     load = open("save.txt", 'r')
     saved_data = load.readline()
@@ -41,7 +41,7 @@ def main() -> None:
                 saved_data[i] = int(saved_data[i])
     except:
         print("err")
-        saved_data = [0, 0, 0.5, (255,255,255), (255,255,255), (0,220,0), (0,0,100), 1]
+        saved_data = [0, 0, 0.5, (255,255,255), (255,255,255), (0,220,0), (0,0,100), 1, 4, 1, 10]
 
     print(saved_data)
 
@@ -242,9 +242,9 @@ def main() -> None:
         pygame.display.set_caption(f"pong deluxe")
 
     save = open("save.txt", "w")
-    # data structure p1.score p2.score volume p1.color p2.color ball.color background.color lighting
-    save.write(f"{player1.score} {player2.score} {menu.volume} {int(player1.color[0])},{ int(player1.color[1]) },{ int(player1.color[2]) } { int(player2.color[0]) },{ int(player2.color[1]) },{ int(player2.color[2]) } { int(ball.color[0]) },{ int(ball.color[1]) },{ int(ball.color[2])} { int(bgcolor[0]) },{ int(bgcolor[1]) },{ int(bgcolor[2]) } { int(menu.lighting) }")
-    print(f"{player1.score} {player2.score} {menu.volume} {int(player1.color[0])},{ int(player1.color[1]) },{ int(player1.color[2]) } { int(player2.color[0]) },{ int(player2.color[1]) },{ int(player2.color[2]) } { int(ball.color[0]) },{ int(ball.color[1]) },{ int(ball.color[2])} { int(bgcolor[0]) },{ int(bgcolor[1]) },{ int(bgcolor[2]) } { int(menu.lighting) }" )
+    # data structure p1.score p2.score volume p1.color p2.color ball.color background.color lighting amount_of_RandomizeParticles ball.add_to_velocity play_until
+    save.write(f"{player1.score} {player2.score} {menu.volume} {int(player1.color[0])},{ int(player1.color[1]) },{ int(player1.color[2]) } { int(player2.color[0]) },{ int(player2.color[1]) },{ int(player2.color[2]) } { int(ball.color[0]) },{ int(ball.color[1]) },{ int(ball.color[2])} { int(bgcolor[0]) },{ int(bgcolor[1]) },{ int(bgcolor[2]) } { int(menu.lighting) } { int(menu.amount_of_RandomizeParticles) } { int(menu.ball_add_to_vel) } { int(menu.play_until) }")
+    print(f"{player1.score} {player2.score} {menu.volume} {int(player1.color[0])},{ int(player1.color[1]) },{ int(player1.color[2]) } { int(player2.color[0]) },{ int(player2.color[1]) },{ int(player2.color[2]) } { int(ball.color[0]) },{ int(ball.color[1]) },{ int(ball.color[2])} { int(bgcolor[0]) },{ int(bgcolor[1]) },{ int(bgcolor[2]) } { int(menu.lighting) } { int(menu.amount_of_RandomizeParticles) } { int(menu.ball_add_to_vel) } { int(menu.play_until) }" )
     save.close()
 
 

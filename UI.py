@@ -185,6 +185,10 @@ class Menu:
         self.player1_color = sd[3]
         self.player2_color = sd[4]
         self.background_color = sd[6]
+        self.amount_of_RandomizeParticles = sd[8]
+        self.ball_add_to_vel = bool(sd[8])
+        self.play_until = sd[9]
+
         self.default_font = pygame.font.Font('assets/ghostclanital.ttf', 50)
         self.slider_font = pygame.font.Font('assets/ghostclanital.ttf', 30)
 
@@ -192,17 +196,18 @@ class Menu:
         self.menu_on = True
         self.game_on = False
         self.options_on = False
+        self.game_menu_on = False
 
         # logic variables 
         self.scores = [0,0]
 
-        # main menu buttons
+        ### MAIN MENU BUTTON'S ###
         self.Start = Button(self.DS,(0,DS[1]/2-100),"START",self.default_font,(255,255,255),(32, 107, 10),(59, 196, 18),True,True,True)
         self.Continue = Button(self.DS,(0,DS[1]/2-35),"CONTINUE",self.default_font,(255,255,255),(107, 107, 11),(222, 222, 22),True,True,True)
         self.Options = Button(self.DS,(0,DS[1]/2+30),"OPTIONS",self.default_font,(255,255,255),(10, 58, 107),(17, 111, 207),True,True,True)
         self.Quit = Button(self.DS,(0,DS[1]/2+95),"QUIT",self.default_font,(255,255,255),(107, 12, 12),(222, 22, 22),True,True,True)
 
-        # options buttons
+        ### OPTION BUTTON'S ###
         self.Back = Button(self.DS,(0,DS[1]/2+240),"BACK",self.default_font,(255,255,255),(10, 58, 107),(17, 111, 207),True,True,True)
 
         # volume slider
@@ -231,16 +236,23 @@ class Menu:
         self.backgroundGreenSlider = Slider(self.DS,(0,500),self.background_color[1],255,0,5,self.slider_font,(255,255,255),(32, 107, 10),(59, 196, 18),True,True,True,False,"BACKGROUND COLOR")
         self.backgroundBlueSlider = Slider(self.DS,(534,500),self.background_color[2],255,0,5,self.slider_font,(255,255,255),(10, 58, 107),(17, 111, 207),True,True)
 
+        ### GAME MENU BUTTON'S ###
+        self.Go = Button(self.DS, (650,DS[1]/2+240),"GO->",self.default_font,(255,255,255),(32,107,10),(59, 196, 18),True,True,False,False)  
+        self.GoBack = Button(self.DS, (30,DS[1]/2+240),"<-BACK",self.default_font,(255,255,255),(107, 12, 12), (222, 22, 22), True,True,False,False)
+
         
 
 
     def Render(self,surface:pygame.Surface):
-        if not self.options_on:
+        if not self.options_on and not self.game_menu_on:
+
             self.Start.Render(surface)
             self.Options.Render(surface)
             self.Continue.Render(surface)
             self.Quit.Render(surface)
-        else:
+
+        elif self.options_on and not self.game_menu_on:
+
             pygame.draw.rect(surface,self.background_color,pygame.Rect(1,1,799,639))
             self.Back.Render(surface)
             self.VolumeSlider.Render(surface)
@@ -280,7 +292,10 @@ class Menu:
             self.backgroundGreenSlider.Render(surface)
             self.backgroundBlueSlider.Render(surface)
 
+        elif not self.options_on and self.game_menu_on:
 
+            self.Go.Render(surface)
+            self.GoBack.Render(surface)
 
 
 
@@ -290,12 +305,12 @@ class Menu:
         x,y = pygame.mouse.get_pos()
         mouse_input = pygame.mouse.get_pressed()
 
-        if not self.options_on:
+        if not self.options_on and not self.game_menu_on:
+
             if self.Start.rect.collidepoint((x,y)):
                 self.Start.on_button()
                 if mouse_input[0]:
-                    self.menu_on = False
-                    self.game_on = True
+                    self.game_menu_on = True
             else:
                 self.Start.off_button()
 
@@ -324,7 +339,8 @@ class Menu:
                     self.game_on = False
             else:
                 self.Quit.off_button()
-        else:
+
+        elif self.options_on and not self.game_menu_on:
             if self.Back.rect.collidepoint((x,y)):
                 self.Back.on_button()
                 if mouse_input[0]:
@@ -365,5 +381,22 @@ class Menu:
             self.player2_color = (self.playerTwoRedSlider.value,self.playerTwoGreenSlider.value,self.playerTwoBlueSlider.value)
             self.background_color = (self.backgroundRedSlider.value,self.backgroundGreenSlider.value,self.backgroundBlueSlider.value)
 
+        elif not self.options_on and self.game_menu_on:
+
+            if self.Go.rect.collidepoint((x,y)):
+                self.Go.on_button()
+                if mouse_input[0]:
+                    self.menu_on = False
+                    self.game_on = True
+            else:
+                self.Go.off_button()
+
+
+            if self.GoBack.rect.collidepoint((x,y)):
+                self.GoBack.on_button()
+                if mouse_input[0]:
+                    self.game_menu_on = False
+            else:
+                self.GoBack.off_button()
 
 
