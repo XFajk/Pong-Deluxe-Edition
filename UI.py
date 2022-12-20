@@ -239,6 +239,10 @@ class Menu:
         ### GAME MENU BUTTON'S ###
         self.Go = Button(self.DS, (650,DS[1]/2+240),"GO->",self.default_font,(255,255,255),(32,107,10),(59, 196, 18),True,True,False,False)  
         self.GoBack = Button(self.DS, (30,DS[1]/2+240),"<-BACK",self.default_font,(255,255,255),(107, 12, 12), (222, 22, 22), True,True,False,False)
+        
+        self.randomParticleAmountSlider = Slider(self.DS,(100,100),self.amount_of_RandomizeParticles,8,0,1,self.slider_font,(255,255,255),(10,58,107),(17, 111, 207),True,True,False,False,"POWER UP'S")
+        self.ballVelocitySlider = Slider(self.DS,(0,100),self.ball_add_to_vel,1,0,1,self.slider_font,(255,255,255),(10,58,107),(17,111,207),True,True,True,False,"incrise vel", True)
+        
 
         
 
@@ -296,6 +300,10 @@ class Menu:
 
             self.Go.Render(surface)
             self.GoBack.Render(surface)
+
+            self.randomParticleAmountSlider.Render(surface)
+            self.ballVelocitySlider.Render(surface)
+
 
 
 
@@ -400,3 +408,9 @@ class Menu:
                 self.GoBack.off_button()
 
 
+            self.randomParticleAmountSlider.basic_slider_logic((x,y),mouse_input)
+            self.ballVelocitySlider.basic_slider_logic((x,y),mouse_input)        
+    
+            
+            self.amount_of_RandomizeParticles = self.randomParticleAmountSlider.value
+            self.ball_add_to_vel = bool(self.ballVelocitySlider.value)

@@ -115,7 +115,7 @@ def main() -> None:
             player2.Update(dt,ball)
 
             if (time.perf_counter() - RandomizeParticle_timer) > 10 and ball.started:
-                for i in range(amount_of_RandomizeParticles):
+                for i in range(int(amount_of_RandomizeParticles)):
                     RandomizeParticles.append(entities.RandomizeParticle(DS,volume,menu.lighting))
                     RandomizeParticle_timer = time.perf_counter()
 
@@ -188,13 +188,14 @@ def main() -> None:
 
             # redecoration
             ball = entities.Ball(DS,menu.volume,menu.ball_color,menu.lighting)
+            ball.add_to_velocity = menu.ball_add_to_vel
             player1 = entities.Player(menu.volume,(10,DS[1]/2),DS,id=1,color=menu.player1_color,lighting=menu.lighting)
             player2 = entities.Player(menu.volume,(DS[0]-16-10,DS[1]/2),DS,id=2,color=menu.player2_color,lighting=menu.lighting)
             player1.score = menu.scores[0]
             player2.score = menu.scores[1]
             bgcolor = menu.background_color
             RandomizeParticles = []
-            amount_of_RandomizeParticles = 8            
+            amount_of_RandomizeParticles = menu.amount_of_RandomizeParticles          
             
             #--DISPLAY--#
 
