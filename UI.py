@@ -186,8 +186,8 @@ class Menu:
         self.player2_color = sd[4]
         self.background_color = sd[6]
         self.amount_of_RandomizeParticles = sd[8]
-        self.ball_add_to_vel = bool(sd[8])
-        self.play_until = sd[9]
+        self.ball_add_to_vel = bool(sd[9])
+        self.play_until = sd[10]
 
         self.default_font = pygame.font.Font('assets/ghostclanital.ttf', 50)
         self.slider_font = pygame.font.Font('assets/ghostclanital.ttf', 30)
@@ -242,8 +242,7 @@ class Menu:
         
         self.randomParticleAmountSlider = Slider(self.DS,(100,100),self.amount_of_RandomizeParticles,8,0,1,self.slider_font,(255,255,255),(10,58,107),(17, 111, 207),True,True,False,False,"POWER UP'S")
         self.ballVelocitySlider = Slider(self.DS,(0,100),self.ball_add_to_vel,1,0,1,self.slider_font,(255,255,255),(10,58,107),(17,111,207),True,True,True,False,"incrise vel", True)
-        
-
+        self.playUntilSlider = Slider(self.DS,(550,100),self.play_until,20,1,1,self.slider_font,(255,255,255),(10,58,107),(17,111,207),True,True,False,False, "play until")
         
 
 
@@ -303,6 +302,7 @@ class Menu:
 
             self.randomParticleAmountSlider.Render(surface)
             self.ballVelocitySlider.Render(surface)
+            self.playUntilSlider.Render(surface)
 
 
 
@@ -409,8 +409,10 @@ class Menu:
 
 
             self.randomParticleAmountSlider.basic_slider_logic((x,y),mouse_input)
-            self.ballVelocitySlider.basic_slider_logic((x,y),mouse_input)        
+            self.ballVelocitySlider.basic_slider_logic((x,y),mouse_input) 
+            self.playUntilSlider.basic_slider_logic((x,y),mouse_input)       
     
             
             self.amount_of_RandomizeParticles = self.randomParticleAmountSlider.value
             self.ball_add_to_vel = bool(self.ballVelocitySlider.value)
+            self.play_until = self.playUntilSlider.value

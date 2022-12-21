@@ -65,6 +65,8 @@ def main() -> None:
     max_fps = 1000
     volume = saved_data[2]
     lighting = saved_data[7]
+    play_until = saved_data[10]
+    print(saved_data.lenght)
 
 
     # dictionary's and simple objects/structures
@@ -118,6 +120,10 @@ def main() -> None:
                 for i in range(int(amount_of_RandomizeParticles)):
                     RandomizeParticles.append(entities.RandomizeParticle(DS,volume,menu.lighting))
                     RandomizeParticle_timer = time.perf_counter()
+
+            if player1.score == play_until or player2.score == play_until:
+                menu.game_on = False
+                menu.menu_on = True
 
 
             # Rendering 
@@ -195,7 +201,8 @@ def main() -> None:
             player2.score = menu.scores[1]
             bgcolor = menu.background_color
             RandomizeParticles = []
-            amount_of_RandomizeParticles = menu.amount_of_RandomizeParticles          
+            amount_of_RandomizeParticles = menu.amount_of_RandomizeParticles    
+            play_until = menu.play_until      
             
             #--DISPLAY--#
 
