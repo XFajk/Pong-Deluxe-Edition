@@ -26,6 +26,7 @@ class Ball:
 
         # logic
         self.started = False
+        self.interesting_physics = False
         self.add_to_velocity = True
         self.velocity_increment = 0.25
         self.max_velocity = 13
@@ -118,6 +119,7 @@ class Player:
 
         # movment variables
         self.w, self.h = 16,0
+        self.middle = 0
         self.size = 90
         self.pos = pygame.Vector2(pos)
         self.vel = pygame.Vector2(0,0)
@@ -158,6 +160,8 @@ class Player:
         if self.h > self.size:
             self.pos.y += 0.5*dt
             self.h -= 1*dt
+
+        self.middle = round(self.pos.y + self.h/2,2)
 
         # the movment
         if self.ID == 1:
@@ -224,6 +228,8 @@ class Player:
             self.hit.play()
             ball.vel.x *= -1
             ball.pos.x = self.pos.x+self.w
+            if ball.interesting_physics:
+                ball.vel.y = (abs(ball.pos.y - self.middle)/10)*(ball.vel.y / abs(ball.vel.y))
             if ball.add_to_velocity and ball.vel.x < ball.max_velocity:
                 if self.vel.y == self.max_vel.y or self.vel.y == -self.max_vel.y: ball.vel.x += ball.velocity_increment*3
                 else: ball.vel.x += ball.velocity_increment 
@@ -233,10 +239,13 @@ class Player:
                 rand_color = random.randint(150,255)
                 rand_ang = random.randint(90,275) if ball.vel.x/abs(ball.vel.x) == -1 else random.randint(-90,90)
                 ball.sparks.append(effects.Spark([ball.pos.x-((ball.vel.x/abs(ball.vel.x))),ball.pos.y],math.radians(rand_ang),random.randint(3,9),(rand_color,rand_color,rand_color),2))
+                
         if self.ID == 2 and ball.rect.colliderect(self.rect):
             self.hit.play()
             ball.vel.x *= -1
             ball.pos.x = self.pos.x-ball.w
+            if ball.interesting_physics:
+                ball.vel.y = (abs(ball.pos.y - self.middle)/10)*(ball.vel.y / abs(ball.vel.y))
             if ball.add_to_velocity and ball.vel.x > -ball.max_velocity:
                 if self.vel.y == self.max_vel.y or self.vel.y == -self.max_vel.y: ball.vel.x -= ball.velocity_increment*3
                 else: ball.vel.x -= ball.velocity_increment 

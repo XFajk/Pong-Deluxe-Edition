@@ -21,7 +21,7 @@ def draw_debug(surface:pygame.Surface,font:pygame.font.Font,*args:tuple):
 def main() -> None:
 
     # loading save
-    # data structure p1.score p2.score volume p1.color p2.color ball.color background.color lighting amount_of_RandomizeParticles ball.add_to_velocity play_until
+    # data structure p1.score p2.score volume p1.color p2.color ball.color background.color lighting amount_of_RandomizeParticles ball.add_to_velocity play_until power_up_spawn_time
 
     load = open("save.txt", 'r')
     saved_data = load.readline()
@@ -40,8 +40,13 @@ def main() -> None:
             else:
                 saved_data[i] = int(saved_data[i])
     except:
-        print("err")
-        saved_data = [0, 0, 0.5, (255,255,255), (255,255,255), (0,220,0), (0,0,100), 1, 4, 1, 10]
+        print("err save syntax")
+        saved_data = [0, 0, 0.5, (255,255,255), (255,255,255), (0,220,0), (0,0,100), 1, 4, 1, 10, 10, 0]
+
+    print(len(saved_data))
+    if len(saved_data) < 13:
+        print("err missing element")
+        saved_data = [0, 0, 0.5, (255,255,255), (255,255,255), (0,220,0), (0,0,100), 1, 4, 1, 10, 10, 0]
 
     print(saved_data)
 
@@ -66,8 +71,6 @@ def main() -> None:
     volume = saved_data[2]
     lighting = saved_data[7]
     play_until = saved_data[10]
-    print(saved_data.lenght)
-
 
     # dictionary's and simple objects/structures
     Game_font = pygame.font.Font('assets/ghostclanital.ttf', 30)
@@ -84,6 +87,7 @@ def main() -> None:
     player2 = entities.Player(menu.volume,(DS[0]-16-10,DS[1]/2),DS,id=2,color=saved_data[4],lighting=1)
     RandomizeParticles = []
     amount_of_RandomizeParticles = 8
+    power_up_spawn_time = saved_data[11]
 
     # text
 
@@ -116,7 +120,7 @@ def main() -> None:
             player1.Update(dt,ball)
             player2.Update(dt,ball)
 
-            if (time.perf_counter() - RandomizeParticle_timer) > 10 and ball.started:
+            if (time.perf_counter() - RandomizeParticle_timer) > power_up_spawn_time and ball.started:
                 for i in range(int(amount_of_RandomizeParticles)):
                     RandomizeParticles.append(entities.RandomizeParticle(DS,volume,menu.lighting))
                     RandomizeParticle_timer = time.perf_counter()
@@ -124,6 +128,7 @@ def main() -> None:
             if player1.score == play_until or player2.score == play_until:
                 menu.game_on = False
                 menu.menu_on = True
+                pygame.mixer.music.stop()
 
 
             # Rendering 
@@ -153,12 +158,13 @@ def main() -> None:
                     ("fps",clock.get_fps()),
                     ("ball velocity", ball.vel),("player1 velocity",player1.vel),("player2 velocity",player2.vel),
                     ("",""),
-                    ("ball position", ball.pos), ("player1 position", player1.pos), ("player2 position", player2.pos))
+                    ("ball position", ball.pos), ("player1 position", player1.pos), ("player2 position", player2.pos),
+                    ("player1 middle",player1.middle), ("player2 middle", player2.middle))
             
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
                     if event.key == K_SPACE and not ball.started:
-                        pygame.mixer.music.set_volume(0.2*volume)
+                        pygame.mixer.music.set_volume(0.2*menu.volume)
                         pygame.mixer.music.play(-1)
                         RandomizeParticle_timer = time.perf_counter()
                         ball.dir = pygame.Vector2(random.choice([-1,1]),random.choice([-1,1]))
@@ -169,6 +175,10 @@ def main() -> None:
                             debug = False
                         else:
                             debug = True
+                    if event.key == K_ESCAPE and not ball.started:
+                        menu.menu_on = True
+                        menu.game_on = False
+                        menu.game_menu_on = False
 
                 if event.type == QUIT:
                     menu.menu_on = False
@@ -195,6 +205,7 @@ def main() -> None:
             # redecoration
             ball = entities.Ball(DS,menu.volume,menu.ball_color,menu.lighting)
             ball.add_to_velocity = menu.ball_add_to_vel
+            ball.interesting_physics = bool(menu.ball_interesting_physics)
             player1 = entities.Player(menu.volume,(10,DS[1]/2),DS,id=1,color=menu.player1_color,lighting=menu.lighting)
             player2 = entities.Player(menu.volume,(DS[0]-16-10,DS[1]/2),DS,id=2,color=menu.player2_color,lighting=menu.lighting)
             player1.score = menu.scores[0]
@@ -203,6 +214,7 @@ def main() -> None:
             RandomizeParticles = []
             amount_of_RandomizeParticles = menu.amount_of_RandomizeParticles    
             play_until = menu.play_until      
+            power_up_spawn_time = menu.power_up_spawn_time
             
             #--DISPLAY--#
 
@@ -251,8 +263,8 @@ def main() -> None:
 
     save = open("save.txt", "w")
     # data structure p1.score p2.score volume p1.color p2.color ball.color background.color lighting amount_of_RandomizeParticles ball.add_to_velocity play_until
-    save.write(f"{player1.score} {player2.score} {menu.volume} {int(player1.color[0])},{ int(player1.color[1]) },{ int(player1.color[2]) } { int(player2.color[0]) },{ int(player2.color[1]) },{ int(player2.color[2]) } { int(ball.color[0]) },{ int(ball.color[1]) },{ int(ball.color[2])} { int(bgcolor[0]) },{ int(bgcolor[1]) },{ int(bgcolor[2]) } { int(menu.lighting) } { int(menu.amount_of_RandomizeParticles) } { int(menu.ball_add_to_vel) } { int(menu.play_until) }")
-    print(f"{player1.score} {player2.score} {menu.volume} {int(player1.color[0])},{ int(player1.color[1]) },{ int(player1.color[2]) } { int(player2.color[0]) },{ int(player2.color[1]) },{ int(player2.color[2]) } { int(ball.color[0]) },{ int(ball.color[1]) },{ int(ball.color[2])} { int(bgcolor[0]) },{ int(bgcolor[1]) },{ int(bgcolor[2]) } { int(menu.lighting) } { int(menu.amount_of_RandomizeParticles) } { int(menu.ball_add_to_vel) } { int(menu.play_until) }" )
+    save.write(f"{player1.score} {player2.score} {menu.volume} {int(player1.color[0])},{ int(player1.color[1]) },{ int(player1.color[2]) } { int(player2.color[0]) },{ int(player2.color[1]) },{ int(player2.color[2]) } { int(ball.color[0]) },{ int(ball.color[1]) },{ int(ball.color[2])} { int(bgcolor[0]) },{ int(bgcolor[1]) },{ int(bgcolor[2]) } { int(menu.lighting) } { int(menu.amount_of_RandomizeParticles) } { int(menu.ball_add_to_vel) } { int(menu.play_until) } { menu.power_up_spawn_time } { int(ball.interesting_physics) }")
+    print(f"{player1.score} {player2.score} {menu.volume} {int(player1.color[0])},{ int(player1.color[1]) },{ int(player1.color[2]) } { int(player2.color[0]) },{ int(player2.color[1]) },{ int(player2.color[2]) } { int(ball.color[0]) },{ int(ball.color[1]) },{ int(ball.color[2])} { int(bgcolor[0]) },{ int(bgcolor[1]) },{ int(bgcolor[2]) } { int(menu.lighting) } { int(menu.amount_of_RandomizeParticles) } { int(menu.ball_add_to_vel) } { int(menu.play_until) } { menu.power_up_spawn_time } { int(ball.interesting_physics) }" )
     save.close()
 
 

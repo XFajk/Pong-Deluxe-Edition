@@ -138,12 +138,14 @@ class Slider:
         if self.rendered_name != None:
             surface.blit(self.rendered_name,(self.pos.x+(self.complete_width-self.rendered_name.get_width())/2,self.pos.y-10-self.rendered_name.get_height()))
 
-    def basic_slider_logic(self,pos:tuple,mouse_input,input_timeout:float=0.15):
+    def basic_slider_logic(self,pos:tuple,mouse_input,sound_effect:pygame.mixer.Sound=None,input_timeout:float=0.15):
         if self.sub.rect.collidepoint(pos):
             self.sub.on_button()
             self.add.text_pos = self.add.pos + pygame.Vector2(5,5)
             if mouse_input[0]:
                 if (time.perf_counter() - self.sub.timer) > input_timeout:
+                    if sound_effect != None:
+                        sound_effect.play()
                     self.value *= 10
                     if self.value > self.min_value*10:
                         self.value -= self.increment*10
@@ -159,6 +161,8 @@ class Slider:
             if mouse_input[0]:
                 self.add.text_pos = self.add.pos + pygame.Vector2(6,8)
                 if (time.perf_counter() - self.add.timer) > input_timeout:
+                    if sound_effect != None:
+                        sound_effect.play()
                     self.value *= 10
                     if self.value < self.max_value*10:
                         self.value += self.increment*10
@@ -188,6 +192,8 @@ class Menu:
         self.amount_of_RandomizeParticles = sd[8]
         self.ball_add_to_vel = bool(sd[9])
         self.play_until = sd[10]
+        self.power_up_spawn_time = sd[11]
+        self.ball_interesting_physics = sd[12]
 
         self.default_font = pygame.font.Font('assets/ghostclanital.ttf', 50)
         self.slider_font = pygame.font.Font('assets/ghostclanital.ttf', 30)
@@ -200,6 +206,10 @@ class Menu:
 
         # logic variables 
         self.scores = [0,0]
+
+        # sound effects
+        self.select_sound = pygame.mixer.Sound("assets/sound-effects/Select_sound.wav")
+        self.select_sound.set_volume(1.0*self.volume)
 
         ### MAIN MENU BUTTON'S ###
         self.Start = Button(self.DS,(0,DS[1]/2-100),"START",self.default_font,(255,255,255),(32, 107, 10),(59, 196, 18),True,True,True)
@@ -241,13 +251,20 @@ class Menu:
         self.GoBack = Button(self.DS, (30,DS[1]/2+240),"<-BACK",self.default_font,(255,255,255),(107, 12, 12), (222, 22, 22), True,True,False,False)
         
         self.randomParticleAmountSlider = Slider(self.DS,(100,100),self.amount_of_RandomizeParticles,8,0,1,self.slider_font,(255,255,255),(10,58,107),(17, 111, 207),True,True,False,False,"POWER UP'S")
-        self.ballVelocitySlider = Slider(self.DS,(0,100),self.ball_add_to_vel,1,0,1,self.slider_font,(255,255,255),(10,58,107),(17,111,207),True,True,True,False,"incrise vel", True)
+        self.ballVelocitySlider = Slider(self.DS,(0,100),self.ball_add_to_vel,1,0,1,self.slider_font,(255,255,255),(10,58,107),(17,111,207),True,True,True,False,"increase vel", True)
         self.playUntilSlider = Slider(self.DS,(550,100),self.play_until,20,1,1,self.slider_font,(255,255,255),(10,58,107),(17,111,207),True,True,False,False, "play until")
-        
+        self.powerUpSpawnTimeSlider = Slider(self.DS,(0,250),self.power_up_spawn_time,15,1,0.1, self.slider_font,(255,255,255),(10,58,107),(17,111,207),True,True,True,False,"power up spawn time") 
+        self.ballInterestingPhysicsSlider = Slider(self.DS,(0,400),self.ball_interesting_physics,1,0,1,self.slider_font,(255,255,255),(10,58,107),(17,111,207),True,True,True,False,"interesting ball physics",True)
 
+
+        # graphics variables 
+        self.title_img = pygame.image.load("assets/sprites/Title.png").convert()
+        self.title_img.set_colorkey((0,0,0))
 
     def Render(self,surface:pygame.Surface):
         if not self.options_on and not self.game_menu_on:
+
+            surface.blit(self.title_img, (245,30))            
 
             self.Start.Render(surface)
             self.Options.Render(surface)
@@ -303,6 +320,8 @@ class Menu:
             self.randomParticleAmountSlider.Render(surface)
             self.ballVelocitySlider.Render(surface)
             self.playUntilSlider.Render(surface)
+            self.powerUpSpawnTimeSlider.Render(surface)
+            self.ballInterestingPhysicsSlider.Render(surface)
 
 
 
@@ -312,12 +331,14 @@ class Menu:
 
         x,y = pygame.mouse.get_pos()
         mouse_input = pygame.mouse.get_pressed()
+        self.select_sound.set_volume(1.0*self.volume)
 
         if not self.options_on and not self.game_menu_on:
 
             if self.Start.rect.collidepoint((x,y)):
                 self.Start.on_button()
                 if mouse_input[0]:
+                    self.select_sound.play()
                     self.game_menu_on = True
             else:
                 self.Start.off_button()
@@ -326,6 +347,7 @@ class Menu:
             if self.Options.rect.collidepoint((x,y)):
                 self.Options.on_button()
                 if mouse_input[0]:
+                    self.select_sound.play()
                     self.options_on = True
             else:
                 self.Options.off_button()
@@ -333,6 +355,7 @@ class Menu:
             if self.Continue.rect.collidepoint((x,y)):
                 self.Continue.on_button()
                 if mouse_input[0]:
+                    self.select_sound.play()
                     self.scores[0] = save_data[0]
                     self.scores[1] = save_data[1]
                     self.menu_on = False
@@ -343,6 +366,7 @@ class Menu:
             if self.Quit.rect.collidepoint((x,y)):
                 self.Quit.on_button()
                 if mouse_input[0]:
+                    self.select_sound.play()
                     self.menu_on = False
                     self.game_on = False
             else:
@@ -352,35 +376,36 @@ class Menu:
             if self.Back.rect.collidepoint((x,y)):
                 self.Back.on_button()
                 if mouse_input[0]:
+                    self.select_sound.play()
                     self.options_on = False
             else:
                 self.Back.off_button()
 
             # volume slider
-            self.VolumeSlider.basic_slider_logic((x,y),mouse_input)
+            self.VolumeSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
 
             # lighting slider
-            self.LightSlider.basic_slider_logic((x,y),mouse_input)
+            self.LightSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
 
             # ball slider's
-            self.ballRedSlider.basic_slider_logic((x,y),mouse_input)
-            self.ballGreenSlider.basic_slider_logic((x,y),mouse_input)
-            self.ballBlueSlider.basic_slider_logic((x,y),mouse_input)
+            self.ballRedSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
+            self.ballGreenSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
+            self.ballBlueSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
 
             # player 1 slider's
-            self.playerOneRedSlider.basic_slider_logic((x,y),mouse_input)
-            self.playerOneGreenSlider.basic_slider_logic((x,y),mouse_input)
-            self.playerOneBlueSlider.basic_slider_logic((x,y),mouse_input)
+            self.playerOneRedSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
+            self.playerOneGreenSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
+            self.playerOneBlueSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
 
             # player 2 slider's
-            self.playerTwoRedSlider.basic_slider_logic((x,y),mouse_input)
-            self.playerTwoGreenSlider.basic_slider_logic((x,y),mouse_input)
-            self.playerTwoBlueSlider.basic_slider_logic((x,y),mouse_input)
+            self.playerTwoRedSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
+            self.playerTwoGreenSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
+            self.playerTwoBlueSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
 
             # background slider's
-            self.backgroundRedSlider.basic_slider_logic((x,y),mouse_input)
-            self.backgroundGreenSlider.basic_slider_logic((x,y),mouse_input)
-            self.backgroundBlueSlider.basic_slider_logic((x,y),mouse_input)
+            self.backgroundRedSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
+            self.backgroundGreenSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
+            self.backgroundBlueSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
 
             self.volume = self.VolumeSlider.value
             self.lighting = self.LightSlider.value
@@ -394,6 +419,7 @@ class Menu:
             if self.Go.rect.collidepoint((x,y)):
                 self.Go.on_button()
                 if mouse_input[0]:
+                    self.select_sound.play()
                     self.menu_on = False
                     self.game_on = True
             else:
@@ -403,16 +429,20 @@ class Menu:
             if self.GoBack.rect.collidepoint((x,y)):
                 self.GoBack.on_button()
                 if mouse_input[0]:
+                    self.select_sound.play()
                     self.game_menu_on = False
             else:
                 self.GoBack.off_button()
 
 
-            self.randomParticleAmountSlider.basic_slider_logic((x,y),mouse_input)
-            self.ballVelocitySlider.basic_slider_logic((x,y),mouse_input) 
-            self.playUntilSlider.basic_slider_logic((x,y),mouse_input)       
-    
-            
+            self.randomParticleAmountSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)
+            self.ballVelocitySlider.basic_slider_logic((x,y),mouse_input,self.select_sound) 
+            self.playUntilSlider.basic_slider_logic((x,y),mouse_input,self.select_sound)       
+            self.powerUpSpawnTimeSlider.basic_slider_logic((x,y), mouse_input,self.select_sound)
+            self.ballInterestingPhysicsSlider.basic_slider_logic((x,y), mouse_input,self.select_sound)
+
+            self.ball_interesting_physics = bool(self.ballInterestingPhysicsSlider.value)
+            self.power_up_spawn_time = self.powerUpSpawnTimeSlider.value
             self.amount_of_RandomizeParticles = self.randomParticleAmountSlider.value
             self.ball_add_to_vel = bool(self.ballVelocitySlider.value)
             self.play_until = self.playUntilSlider.value
