@@ -125,13 +125,28 @@ def main() -> None:
                     RandomizeParticles.append(entities.RandomizeParticle(DS,volume,menu.lighting))
                     RandomizeParticle_timer = time.perf_counter()
 
-            if player1.score == play_until or player2.score == play_until:
+            if player1.score == play_until:
                 menu.game_on = False
                 menu.menu_on = True
+                menu.player1_win = True
+                menu.firework_spawn_timer = time.perf_counter()
+                menu.game_menu_on = False
+                saved_data[0],saved_data[1] = 0,0
                 pygame.mixer.music.stop()
+            elif player2.score == play_until:
+                menu.game_on = False
+                menu.menu_on = True
+                menu.player2_win = True
+                menu.firework_spawn_timer = time.perf_counter()
+                menu.game_menu_on = False
+                saved_data[0],saved_data[1] = 0,0
+                pygame.mixer.music.stop() 
 
 
             # Rendering 
+            if not ball.started:
+                display.blit(Game_font.render("press [SPACE]", False, (255,255,255)), (100,DS[1]/2-15))
+                display.blit(Game_font.render("press [SPACE]",False, (255,255,255)), (450,DS[1]/2-15))
             pygame.draw.rect(display,(255,255,255),pygame.Rect(DS[0]/2-2,0,4,DS[1]))
             ball.Render(display,dt)
             player1.Render(display,dt)
@@ -159,7 +174,8 @@ def main() -> None:
                     ("ball velocity", ball.vel),("player1 velocity",player1.vel),("player2 velocity",player2.vel),
                     ("",""),
                     ("ball position", ball.pos), ("player1 position", player1.pos), ("player2 position", player2.pos),
-                    ("player1 middle",player1.middle), ("player2 middle", player2.middle))
+                    ("player1 middle",player1.middle), ("player2 middle", player2.middle),
+                    ("player1 max vel", player1.max_vel), ("player2 max vel", player2.max_vel))
             
             for event in pygame.event.get():
                 if event.type == KEYDOWN:
@@ -219,7 +235,7 @@ def main() -> None:
             #--DISPLAY--#
 
             #--UI_DISPLAY--#
-            menu.Render(UI_display)
+            menu.Render(UI_display,dt)
             
             mouse_pos = pygame.mouse.get_pos()
             # mouse drawing
@@ -234,8 +250,13 @@ def main() -> None:
             for event in pygame.event.get():
                 if event.type == QUIT:
                     menu.menu_on = False
-                    menu.game_on = False
+                    menu.game_on = False   
+                if event.type == KEYDOWN:
+                    if event.key == K_ESCAPE and not ball.started:
+                        menu.player1_win = False
+                    menu.player2_win = False
 
+                
         pygame.display.update()
         UI_display.set_colorkey((0,0,0))
         window.fill((1,0,0))

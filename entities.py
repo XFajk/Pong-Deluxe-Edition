@@ -263,6 +263,7 @@ class Player:
             ball.w = 1
             ball.size = 16
             self.size = 90
+            self.max_vel.y = 5.0
             ball.screen_shake_time = 30
             for i in range(30):
                 ball.particles.append([pygame.Vector2(ball.pos),pygame.Vector2(random.randint(5,10),random.randint(-10,10))/3,random.randint(25,34),random.choice([True,False])])
@@ -274,10 +275,13 @@ class Player:
             ball.w = 1
             ball.size = 16
             self.size = 90
+            self.max_vel.y = 5.0
             ball.screen_shake_time = 30
             for i in range(30):
                 ball.particles.append([pygame.Vector2(ball.pos),pygame.Vector2(random.randint(-10,-5),random.randint(-10,10))/3,random.randint(25,34),random.choice([True, False])])
 
+        if ball.pos.x >= ball.DS[0] or ball.pos.x <= -16:
+            self.max_vel.y = 5.0
         # making player height reset to original
         if not ball.started:
             self.size = 90
@@ -297,13 +301,16 @@ class RandomizeParticle:
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.w, self.h)
 
         # logic variables
-        self.effect_ID = random.randint(0,3)
+        self.effect_ID = random.randint(0,8)
         self.alive = True
 
         # player effect variables
         self.player_max_height = 180
         self.player_min_height = 30
         self.player_size_increment = 30
+        self.player_max_vel = 10.0
+        self.player_min_vel = 5.0
+        self.player_vel_increment = 1.0
 
         # ball effect variables
         self.ball_max_radius = 64
@@ -336,6 +343,16 @@ class RandomizeParticle:
             elif self.effect_ID == 3 and p1.size > self.player_min_height and p2.size > self.player_min_height:
                 p1.size -= self.player_size_increment
                 p2.size -= self.player_size_increment
+            elif self.effect_ID == 4:
+                b.vel.x = -b.vel.x
+            elif self.effect_ID == 5:
+                b.vel.y = -b.vel.y
+            elif self.effect_ID == 6 and p1.max_vel.y < self.player_max_vel and p2.max_vel.y < self.player_max_vel:
+                p1.max_vel.y += self.player_vel_increment
+                p2.max_vel.y += self.player_vel_increment
+            elif self.effect_ID == 7 and p1.max_vel.y > self.player_min_vel and p2.max_vel.y > self.player_min_vel:
+                p1.max_vel.y -= self.player_vel_increment
+                p2.max_vel.y -= self.player_vel_increment
             else:
                 b.vel.x = -b.vel.x
             

@@ -6,6 +6,7 @@ import time
 import random
 
 from effects import surf_circle, surf_rect
+import effects
 
 
 class Button:
@@ -199,6 +200,8 @@ class Menu:
         self.slider_font = pygame.font.Font('assets/ghostclanital.ttf', 30)
 
         # state variables
+        self.player1_win = False
+        self.player2_win = False
         self.menu_on = True
         self.game_on = False
         self.options_on = False
@@ -210,6 +213,8 @@ class Menu:
         # sound effects
         self.select_sound = pygame.mixer.Sound("assets/sound-effects/Select_sound.wav")
         self.select_sound.set_volume(1.0*self.volume)
+        self.firework_sounds = [pygame.mixer.Sound("assets/sound-effects/firework.mp3"),pygame.mixer.Sound("assets/sound-effects/firework2.mp3")]
+
 
         ### MAIN MENU BUTTON'S ###
         self.Start = Button(self.DS,(0,DS[1]/2-100),"START",self.default_font,(255,255,255),(32, 107, 10),(59, 196, 18),True,True,True)
@@ -260,9 +265,16 @@ class Menu:
         # graphics variables 
         self.title_img = pygame.image.load("assets/sprites/Title.png").convert()
         self.title_img.set_colorkey((0,0,0))
+        self.fireworks = []
+        self.firework_particles = []
+        self.firework_spawn_timer = 0.0
 
-    def Render(self,surface:pygame.Surface):
-        if not self.options_on and not self.game_menu_on:
+        # text's
+        self.player1_won_text = self.default_font.render("PLAYER 1 WON", False, (255,255,255))
+        self.player2_won_text = self.default_font.render("PLAYER 2 WON", False, (255,255,255))
+
+    def Render(self,surface:pygame.Surface,dt:float):
+        if not self.options_on and not self.game_menu_on and not self.player1_win and not self.player2_win:
 
             surface.blit(self.title_img, (245,30))            
 
@@ -322,6 +334,59 @@ class Menu:
             self.playUntilSlider.Render(surface)
             self.powerUpSpawnTimeSlider.Render(surface)
             self.ballInterestingPhysicsSlider.Render(surface)
+
+        elif self.menu_on and self.player1_win:
+            if (time.perf_counter() - self.firework_spawn_timer) > 0.5:
+                rand_color = (random.randint(100,255),random.randint(100,255),random.randint(100,255))
+                ang = -90
+                rand_pos = pygame.Vector2(random.randint(60,self.DS[0]-60), self.DS[1])
+                self.fireworks.append(effects.Spark([rand_pos.x,rand_pos.y],math.radians(ang),random.randint(13,15),rand_color,2))
+                self.firework_spawn_timer = time.perf_counter()
+
+            for i, firework in sorted(enumerate(self.fireworks), reverse=True):
+                firework.move(dt)
+                firework.draw(surface)
+                if not firework.alive:
+                    for x in range(60):
+                        rand_ang = random.randint(0,360)
+                        self.firework_particles.append(effects.Spark([firework.loc[0],firework.loc[1]],math.radians(rand_ang),random.randint(4,9),firework.color,2))
+                    self.firework_sounds[random.randint(0, 1)].play()
+                    self.fireworks.pop(i)
+
+            for i, firework_particle in sorted(enumerate(self.firework_particles), reverse=True): 
+                firework_particle.move(dt)
+                firework_particle.draw(surface) 
+                if not firework_particle.alive:
+                    self.firework_particles.pop(i)
+
+
+            surface.blit(self.player1_won_text,(self.DS[0]/2-self.player1_won_text.get_width()/2,self.DS[1]/2-self.player1_won_text.get_height()/2))
+        elif self.menu_on and self.player2_win:
+            if (time.perf_counter() - self.firework_spawn_timer) > 0.5:
+                rand_color = (random.randint(100,255),random.randint(100,255),random.randint(100,255))
+                ang = -90
+                rand_pos = pygame.Vector2(random.randint(60,self.DS[0]-60), self.DS[1])
+                self.fireworks.append(effects.Spark([rand_pos.x,rand_pos.y],math.radians(ang),random.randint(13,15),rand_color,2))
+                self.firework_spawn_timer = time.perf_counter()
+
+            for i, firework in sorted(enumerate(self.fireworks), reverse=True):
+                firework.move(dt)
+                firework.draw(surface)
+                if not firework.alive:
+                    for x in range(60):
+                        rand_ang = random.randint(0,360)
+                        self.firework_particles.append(effects.Spark([firework.loc[0],firework.loc[1]],math.radians(rand_ang),random.randint(4,9),firework.color,2))
+                    self.firework_sounds[random.randint(0, 1)].play()
+                    self.fireworks.pop(i)
+
+            for i, firework_particle in sorted(enumerate(self.firework_particles), reverse=True): 
+                firework_particle.move(dt)
+                firework_particle.draw(surface) 
+                if not firework_particle.alive:
+                    self.firework_particles.pop(i)
+
+
+            surface.blit(self.player2_won_text,(self.DS[0]/2-self.player2_won_text.get_width()/2,self.DS[1]/2-self.player2_won_text.get_height()/2))
 
 
 
