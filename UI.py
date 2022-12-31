@@ -404,6 +404,8 @@ class Menu:
                 self.Start.on_button()
                 if mouse_input[0]:
                     self.select_sound.play()
+                    self.scores[0] = 0
+                    self.scores[1] = 0
                     self.game_menu_on = True
             else:
                 self.Start.off_button()
