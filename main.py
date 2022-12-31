@@ -54,7 +54,8 @@ def main() -> None:
     ZOOM = 1
     WS = (800,640)
     DS = (WS[0]/ZOOM,WS[1]/ZOOM)
-    window = pygame.display.set_mode(WS,FULLSCREEN)
+    window = pygame.display.set_mode(WS)
+    pygame.display.set_icon(pygame.image.load("assets/sprites/Title_ico.png").convert())
     display = pygame.Surface(DS)
     UI_display = pygame.Surface(DS)
     clock = pygame.time.Clock()
