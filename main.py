@@ -193,9 +193,11 @@ def main() -> None:
                         else:
                             debug = True
                     if event.key == K_ESCAPE and not ball.started:
-                        menu.menu_on = True
                         menu.game_on = False
+                        menu.menu_on = True
                         menu.game_menu_on = False
+                        saved_data[0],saved_data[1] = player1.score,player2.score
+                        pygame.mixer.music.stop()
 
                 if event.type == QUIT:
                     menu.menu_on = False
