@@ -295,7 +295,7 @@ class RandomizeParticle:
 
         # movement logic variables
         self.w, self.h = 12,12
-        self.pos = pygame.Vector2(random.randint(100,DS[0]-100),random.choice([-10,DS[1]+10]))
+        self.pos = pygame.Vector2(random.randint(100,int(DS[0]-100)),random.choice([-10,DS[1]+10]))
         self.vel = pygame.Vector2(0,random.randint(10,50)/10 if self.pos.y < 0 else random.randint(-50,-10)/10)
         self.end_pos = DS[1]+18 if self.pos.y < 0 else -18
         self.rect = pygame.Rect(self.pos.x, self.pos.y, self.w, self.h)

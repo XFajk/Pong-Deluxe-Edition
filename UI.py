@@ -339,7 +339,7 @@ class Menu:
             if (time.perf_counter() - self.firework_spawn_timer) > 0.5:
                 rand_color = (random.randint(100,255),random.randint(100,255),random.randint(100,255))
                 ang = -90
-                rand_pos = pygame.Vector2(random.randint(60,self.DS[0]-60), self.DS[1])
+                rand_pos = pygame.Vector2(random.randint(60,int(self.DS[0]-60)), self.DS[1])
                 self.fireworks.append(effects.Spark([rand_pos.x,rand_pos.y],math.radians(ang),random.randint(13,15),rand_color,2))
                 self.firework_spawn_timer = time.perf_counter()
 
@@ -365,7 +365,7 @@ class Menu:
             if (time.perf_counter() - self.firework_spawn_timer) > 0.5:
                 rand_color = (random.randint(100,255),random.randint(100,255),random.randint(100,255))
                 ang = -90
-                rand_pos = pygame.Vector2(random.randint(60,self.DS[0]-60), self.DS[1])
+                rand_pos = pygame.Vector2(random.randint(60,int(self.DS[0]-60)), self.DS[1])
                 self.fireworks.append(effects.Spark([rand_pos.x,rand_pos.y],math.radians(ang),random.randint(13,15),rand_color,2))
                 self.firework_spawn_timer = time.perf_counter()
 
